@@ -1,0 +1,705 @@
+{% assign config = shop.metafields.bundle_builder.config.value %}
+
+{% if config == blank %}
+  <div style="padding: 40px; text-align: center; background: #f9f9f9; border-radius: 8px; margin: 20px; font-family: sans-serif;">
+    <h2 style="margin-bottom: 10px;">Bundle Builder Not Configured</h2>
+    <p>Please configure your bundle products and discount tiers in the app settings.</p>
+  </div>
+{% else %}
+  {% assign bundle_products = config.products %}
+  {% assign discounts = config.discounts | sort: 'count' %}
+  
+  <style>
+    .bundle-builder {
+      display: flex;
+      gap: 30px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .bundle-builder__main {
+      flex: 2;
+    }
+
+    .bundle-builder__heading {
+      margin-bottom: 30px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .bundle-builder__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .bundle-product-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      border: 1px solid #eee;
+    }
+
+    .bundle-product-card__image {
+      width: 100px;
+      height: 100px;
+      flex-shrink: 0;
+    }
+
+    .bundle-product-card__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .bundle-product-card__info {
+      flex-grow: 1;
+    }
+
+    .bundle-product-card__info h3 {
+      margin: 0 0 5px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .bundle-product-card__info .price {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .bundle-product-card__info .details-link {
+      display: block;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #666;
+      text-decoration: none;
+      border: 1px solid #ddd;
+      padding: 5px 10px;
+      border-radius: 4px;
+      width: fit-content;
+      background: #fff;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .add-to-bundle-btn {
+      width: 100%;
+      background: {{ block.settings.accent_color }};
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    .add-to-bundle-btn:hover {
+      background: #b54534;
+    }
+
+    .add-to-bundle-btn.added {
+      background: #eee;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+
+    .bundle-sidebar {
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .bundle-summary-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 20px;
+      text-align: center;
+    }
+
+    .bundle-summary-card h2 {
+      margin: 0 0 5px 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .bundle-summary-card .bundle-item-count {
+      color: #333;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .progress-container {
+      background: #f0f0f0;
+      height: 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      background: {{ block.settings.accent_color | color_modify: 'alpha', 0.3 }};
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+      border-radius: 10px;
+    }
+
+    .progress-bar.active {
+      background: {{ block.settings.progress_bar_color }};
+      opacity: 1;
+    }
+
+    .discount-tiers {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .tier-marker {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      text-align: center;
+      color: #333;
+    }
+
+    .tier-marker .percentage {
+      font-weight: bold;
+    }
+
+    .tier-marker.reached {
+      color: {{ block.settings.reached_milestone_color }};
+    }
+
+    #bundle-message {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .bundle-totals {
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      background: {{ block.settings.checkout_btn_color }};
+      color: {{ block.settings.checkout_btn_text_color }};
+      border: none;
+      padding: 15px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .checkout-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Product Details Modal Refinement */
+    .bundle-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .bundle-modal.is-open {
+      display: flex;
+    }
+
+    .bundle-modal__content {
+      background-color: #fff;
+      width: 100%;
+      max-width: 900px;
+      max-height: 90vh;
+      border-radius: 16px;
+      position: relative;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bundle-modal__close {
+      position: sticky;
+      top: 15px;
+      right: 15px;
+      align-self: flex-end;
+      margin-right: 15px;
+      margin-top: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      z-index: 100;
+      background: #f4f4f4;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    .bundle-modal__close:hover {
+      background: #e0e0e0;
+    }
+
+    .bundle-modal__body {
+      padding: 30px;
+      display: flex;
+      gap: 40px;
+    }
+
+    .bundle-modal__gallery {
+      flex: 1;
+      max-width: 400px;
+    }
+
+    .bundle-modal__main-image {
+      width: 100%;
+      border-radius: 8px;
+      object-fit: contain;
+      background: #f9f9f9;
+    }
+
+    .bundle-modal__info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bundle-modal__title {
+      font-size: 28px;
+      margin: 0 0 10px 0;
+      color: #1a1a1a;
+    }
+
+    .bundle-modal__price {
+      font-size: 22px;
+      font-weight: bold;
+      color: {{ block.settings.accent_color }};
+      margin-bottom: 20px;
+    }
+
+    .bundle-modal__description {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #444;
+      margin-bottom: 25px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    .bundle-modal__loader {
+      display: none;
+      padding: 100px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .bundle-modal.is-loading .bundle-modal__loader {
+      display: block;
+    }
+
+    .bundle-modal.is-loading .bundle-modal__body {
+      display: none;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid {{ block.settings.accent_color }};
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .bundle-modal__body {
+        flex-direction: column;
+        padding: 20px;
+        gap: 20px;
+      }
+      .bundle-modal__gallery {
+        max-width: 100%;
+      }
+      .bundle-modal__title {
+        font-size: 22px;
+      }
+      .bundle-builder {
+        flex-direction: column;
+      }
+      .bundle-sidebar {
+        order: -1;
+      }
+    }
+  </style>
+
+  <div class="bundle-builder" 
+       data-discounts='{{ discounts | json }}'
+       data-currency-symbol="{{ cart.currency.symbol }}"
+       data-currency-code="{{ cart.currency.iso_code }}">
+    <div class="bundle-builder__main">
+      {% if block.settings.heading != blank %}
+        <h1 class="bundle-builder__heading">{{ block.settings.heading }}</h1>
+      {% endif %}
+      <div class="bundle-builder__grid">
+      {% for item in bundle_products %}
+        {% assign product = all_products[item.handle] %}
+        {% if product != blank %}
+          {% assign variant = product.first_available_variant | default: product.variants[0] %}
+          <div class="bundle-product-card" 
+               data-product-id="{{ product.id }}" 
+               data-variant-id="{{ variant.id }}" 
+               data-price="{{ product.price }}">
+            <div class="bundle-product-card__image">
+               <img src="{{ product.featured_image | img_url: '300x' }}" alt="{{ product.title }}">
+            </div>
+            <div class="bundle-product-card__info">
+              <h3>{{ product.title }}</h3>
+              <p class="price">{{ product.price | money }}</p>
+              <button class="details-link" onclick="BundleInstance.openModal('{{ product.url }}')">Product details ↗</button>
+              <button class="add-to-bundle-btn" onclick="BundleInstance.toggle(this)">Add</button>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    </div>
+
+    <div class="bundle-sidebar">
+       <div class="bundle-summary-card">
+          <h2 class="bundle-goal-text">Add items to start saving</h2>
+          <p class="bundle-item-count">0 items</p>
+          
+          <div class="progress-container">
+             <div class="bundle-progress-bar progress-bar"></div>
+          </div>
+          
+          <div class="discount-tiers">
+             {% for discount in discounts %}
+               <div class="tier-marker" data-tier="{{ discount.count }}">
+                  <span class="percentage">{{ discount.percentage }}% off</span>
+                  <span class="count">{{ discount.count }}{% if forloop.last %}+{% endif %} items</span>
+               </div>
+             {% endfor %}
+          </div>
+
+          <p class="bundle-message">Add items and start saving!</p>
+          
+          <div class="bundle-totals">
+             <div class="total-row">
+                <span>Savings</span>
+                <span class="bundle-savings">—</span>
+             </div>
+             <div class="total-row">
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
+             </div>
+          </div>
+
+          <button class="bundle-checkout-btn checkout-btn" disabled onclick="BundleInstance.checkout(this)">Continue to checkout</button>
+       </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="bundle-product-modal" class="bundle-modal" onclick="BundleInstance.closeModal(event)">
+      <div class="bundle-modal__content" onclick="event.stopPropagation()">
+        <span class="bundle-modal__close" onclick="BundleInstance.closeModal()">&times;</span>
+        
+        <div class="bundle-modal__loader">
+          <div class="spinner"></div>
+          <p>Loading product details...</p>
+        </div>
+
+        <div class="bundle-modal__body">
+          <div class="bundle-modal__gallery">
+            <img id="modal-product-image" class="bundle-modal__main-image" src="" alt="">
+          </div>
+          <div class="bundle-modal__info">
+            <h2 id="modal-product-title" class="bundle-modal__title"></h2>
+            <div id="modal-product-price" class="bundle-modal__price"></div>
+            <div id="modal-product-description" class="bundle-modal__description"></div>
+            
+            <button class="add-to-bundle-btn modal-add-btn" onclick="BundleInstance.toggleFromModal(this)">Add to Bundle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var BundleInstance = BundleInstance || (function() {
+      const selectedItemsMap = new Map(); // Container element -> selectedItems array
+
+      function getContainer(el) {
+        return el.closest('.bundle-builder');
+      }
+
+      function getSelectedItems(container) {
+        if (!selectedItemsMap.has(container)) {
+          selectedItemsMap.set(container, []);
+        }
+        return selectedItemsMap.get(container);
+      }
+
+      function toggle(button) {
+        const container = getContainer(button);
+        const card = button.closest('.bundle-product-card');
+        const variantId = card.dataset.variantId;
+        const price = parseInt(card.dataset.price) || 0;
+        const title = card.querySelector('h3').innerText;
+
+        if (!variantId) {
+          console.error('Bundle Builder: Missing variant ID for product', title);
+          return;
+        }
+
+        const selectedItems = getSelectedItems(container);
+        const index = selectedItems.findIndex(item => item.variantId === variantId);
+
+        if (index > -1) {
+          selectedItems.splice(index, 1);
+          button.innerText = 'Add';
+          button.classList.remove('added');
+        } else {
+          selectedItems.push({ variantId, price, title });
+          button.innerText = 'Added';
+          button.classList.add('added');
+        }
+
+        updateUI(container);
+      }
+
+      function updateUI(container) {
+        const selectedItems = getSelectedItems(container);
+        const itemCount = selectedItems.length;
+        const discounts = JSON.parse(container.dataset.discounts || '[]');
+        const sortedDiscounts = [...discounts].sort((a, b) => a.count - b.count);
+
+        container.querySelector('.bundle-item-count').innerText = `${itemCount} items`;
+
+        let currentDiscount = 0;
+        sortedDiscounts.forEach(d => {
+          const marker = container.querySelector(`.tier-marker[data-tier="${d.count}"]`);
+          if (itemCount >= d.count) {
+            currentDiscount = d.percentage;
+            if (marker) marker.classList.add('reached');
+          } else {
+            if (marker) marker.classList.remove('reached');
+          }
+        });
+
+        const nextDiscount = sortedDiscounts.find(d => d.count > itemCount);
+        const goalText = container.querySelector('.bundle-goal-text');
+        
+        if (nextDiscount) {
+          const remaining = nextDiscount.count - itemCount;
+          goalText.innerText = `Add ${remaining} item${remaining > 1 ? 's' : ''} to save ${nextDiscount.percentage}%`;
+        } else if (currentDiscount > 0) {
+          goalText.innerText = `Saving ${currentDiscount}%!`;
+        } else {
+          goalText.innerText = `Add items to start saving`;
+        }
+
+        const progressBar = container.querySelector('.bundle-progress-bar');
+        const maxCount = sortedDiscounts.length > 0 ? sortedDiscounts[sortedDiscounts.length - 1].count : 1;
+        const progress = Math.min((itemCount / maxCount) * 100, 100);
+        progressBar.style.width = `${progress}%`;
+        currentDiscount > 0 ? progressBar.classList.add('active') : progressBar.classList.remove('active');
+
+        const savingsEl = container.querySelector('.bundle-savings');
+        if (currentDiscount > 0) {
+          const totalRaw = selectedItems.reduce((sum, item) => sum + item.price, 0);
+          const savings = (totalRaw * currentDiscount) / 100;
+          savingsEl.innerText = formatMoney(savings, container);
+        } else {
+          savingsEl.innerText = '—';
+        }
+
+        const checkoutBtn = container.querySelector('.bundle-checkout-btn');
+        checkoutBtn.disabled = itemCount === 0;
+      }
+
+      function formatMoney(cents, container) {
+        const symbol = container.dataset.currencySymbol || '$';
+        const code = container.dataset.currencyCode || 'USD';
+        
+        try {
+          return new Intl.NumberFormat(navigator.language, {
+            style: 'currency',
+            currency: code,
+          }).format(cents / 100);
+        } catch (e) {
+          return symbol + (cents / 100).toFixed(2);
+        }
+      }
+
+      function checkout(button) {
+        const container = getContainer(button);
+        const selectedItems = getSelectedItems(container);
+        if (selectedItems.length === 0) return;
+
+        const items = selectedItems.reduce((acc, item) => {
+          acc[item.variantId] = (acc[item.variantId] || 0) + 1;
+          return acc;
+        }, {});
+
+        const cartParams = Object.entries(items)
+          .map(([id, qty]) => `${id}:${qty}`)
+          .join(',');
+
+        window.location.href = `/cart/${cartParams}`;
+      }
+
+      function openModal(url) {
+        const modal = document.getElementById('bundle-product-modal');
+        modal.classList.add('is-open', 'is-loading');
+        document.body.style.overflow = 'hidden';
+
+        fetch(url + '.js')
+          .then(response => response.json())
+          .then(product => {
+            document.getElementById('modal-product-title').innerText = product.title;
+            document.getElementById('modal-product-price').innerText = formatMoney(product.price, getContainer(modal));
+            document.getElementById('modal-product-description').innerHTML = product.description;
+            document.getElementById('modal-product-image').src = product.featured_image;
+            document.getElementById('modal-product-image').alt = product.title;
+
+            const addBtn = modal.querySelector('.modal-add-btn');
+            addBtn.dataset.variantId = product.variants[0].id;
+            
+            // Sync button state with main grid
+            const mainGridBtn = document.querySelector(`.bundle-product-card[data-variant-id="${product.variants[0].id}"] .add-to-bundle-btn`);
+            if (mainGridBtn && mainGridBtn.classList.contains('added')) {
+              addBtn.innerText = 'Added to Bundle';
+              addBtn.classList.add('added');
+            } else {
+              addBtn.innerText = 'Add to Bundle';
+              addBtn.classList.remove('added');
+            }
+
+            modal.classList.remove('is-loading');
+          })
+          .catch(error => {
+            console.error('Error fetching product:', error);
+            modal.querySelector('.bundle-modal__loader').innerHTML = '<p>Error loading product. Please try again.</p>';
+          });
+      }
+
+      function closeModal() {
+        const modal = document.getElementById('bundle-product-modal');
+        modal.classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+
+      function toggleFromModal(button) {
+        const variantId = button.dataset.variantId;
+        const mainGridBtn = document.querySelector(`.bundle-product-card[data-variant-id="${variantId}"] .add-to-bundle-btn`);
+        
+        if (mainGridBtn) {
+          toggle(mainGridBtn);
+          
+          // Sync modal button text
+          if (mainGridBtn.classList.contains('added')) {
+            button.innerText = 'Added to Bundle';
+            button.classList.add('added');
+          } else {
+            button.innerText = 'Add to Bundle';
+            button.classList.remove('added');
+          }
+        }
+      }
+
+      return { toggle, checkout, openModal, closeModal, toggleFromModal };
+    })();
+  </script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Bundle Builder",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Build Your Own Bundle"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#D1513D"
+    },
+    {
+      "type": "color",
+      "id": "progress_bar_color",
+      "label": "Progress Bar Color (Achieved)",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "reached_milestone_color",
+      "label": "Reached Milestone Color",
+      "default": "#28a745"
+    },
+    {
+      "type": "color",
+      "id": "checkout_btn_color",
+      "label": "Checkout Button Color",
+      "default": "#90FF90"
+    },
+    {
+      "type": "color",
+      "id": "checkout_btn_text_color",
+      "label": "Checkout Button Text Color",
+      "default": "#333333"
+    }
+  ]
+}
+{% endschema %}
