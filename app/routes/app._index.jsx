@@ -7,7 +7,7 @@ import { getBundleConfig, setBundleConfig, createBundleDiscount, deleteBundleDis
 const METAFIELD_KEY = "config";
 
 export const loader = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const savedConfig = await getBundleConfig(admin.graphql, METAFIELD_KEY);
   
   if (savedConfig && savedConfig.products && savedConfig.products.length > 0) {
@@ -44,6 +44,7 @@ export const loader = async ({ request }) => {
   }
 
   return {
+    shop: session.shop,
     initialConfig: savedConfig || {
       products: [],
       discounts: [
@@ -155,7 +156,7 @@ export const action = async ({ request }) => {
 };
 
 export default function Index() {
-  const { initialConfig } = useLoaderData();
+  const { initialConfig, shop } = useLoaderData();
   const actionData = useActionData();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -165,6 +166,8 @@ export default function Index() {
   const [discounts, setDiscounts] = useState(initialConfig?.discounts || []);
   const [saveStatus, setSaveStatus] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const deepLinkUrl = `https://${shop}/admin/themes/current/editor?addAppBlockId=a556b982b72af329f9965df4922e2761/bundle_builder`;
 
   useEffect(() => {
     if (actionData) {
@@ -250,6 +253,13 @@ export default function Index() {
         loading={navigation.state === "submitting" ? "true" : undefined}
       >
         Save Configuration
+      </s-button>
+      
+      <s-button 
+        slot="primary-action" 
+        onClick={() => window.open(deepLinkUrl, '_blank')}
+      >
+        Add to Store
       </s-button>
 
       <s-section heading="Products">
