@@ -2,7 +2,7 @@
 
 client_id = "a556b982b72af329f9965df4922e2761"
 name = "Bundle builder"
-application_url = "https://example.com"
+application_url = "https://bundle-o3o3.onrender.com"
 embedded = true
 
 [build]
@@ -21,7 +21,7 @@ api_version = "2026-04"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "write_products,write_discounts"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://bundle-o3o3.onrender.com/api/auth" ]

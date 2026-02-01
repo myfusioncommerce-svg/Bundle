@@ -1,4 +1,10 @@
-{% assign config = shop.metafields.bundle_builder.config.value %}
+{% if block.settings.bundle_type == 'main' %}
+  {% assign config = shop.metafields.bundle_builder.config.value %}
+  {% assign prefix = 'fubndl' %}
+{% else %}
+  {% assign config = shop.metafields.bundle_builder.product_page.value %}
+  {% assign prefix = 'fuprbl' %}
+{% endif %}
 
 {% if config == blank %}
   <div style="padding: 40px; text-align: center; background: #f9f9f9; border-radius: 8px; margin: 20px; font-family: sans-serif;">
@@ -380,6 +386,7 @@
 
   <div class="bundle-builder" 
        data-discounts='{{ discounts | json }}'
+       data-prefix="{{ prefix }}"
        data-currency-symbol="{{ cart.currency.symbol }}"
        data-currency-code="{{ cart.currency.iso_code }}">
     <div class="bundle-builder__main">
@@ -583,6 +590,18 @@
         const selectedItems = getSelectedItems(container);
         if (selectedItems.length === 0) return;
 
+        const itemCount = selectedItems.length;
+        const discounts = JSON.parse(container.dataset.discounts || '[]');
+        const prefix = container.dataset.prefix || 'fubndl';
+        const sortedDiscounts = [...discounts].sort((a, b) => a.count - b.count);
+        
+        let currentDiscount = 0;
+        sortedDiscounts.forEach(d => {
+          if (itemCount >= d.count) {
+            currentDiscount = d.percentage;
+          }
+        });
+
         const items = selectedItems.reduce((acc, item) => {
           acc[item.variantId] = (acc[item.variantId] || 0) + 1;
           return acc;
@@ -592,7 +611,12 @@
           .map(([id, qty]) => `${id}:${qty}`)
           .join(',');
 
-        window.location.href = `/cart/${cartParams}`;
+        let url = `/cart/${cartParams}`;
+        if (currentDiscount > 0) {
+          url += `?discount=${prefix}-${currentDiscount}`;
+        }
+        
+        window.location.href = url;
       }
 
       function openModal(url) {
@@ -664,6 +688,16 @@
   "name": "Bundle Builder",
   "target": "section",
   "settings": [
+    {
+      "type": "select",
+      "id": "bundle_type",
+      "label": "Bundle Type",
+      "options": [
+        { "value": "main", "label": "Main Bundle Builder" },
+        { "value": "product", "label": "Product Page Bundle" }
+      ],
+      "default": "main"
+    },
     {
       "type": "text",
       "id": "heading",

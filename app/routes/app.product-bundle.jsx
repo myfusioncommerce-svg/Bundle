@@ -2,14 +2,15 @@ import { useState, useEffect } from "react";
 import { useLoaderData, useSubmit, useActionData, useNavigation } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { getBundleConfig, setBundleConfig } from "../lib/bundle-utils.js";
+import { getBundleConfig, setBundleConfig, createBundleDiscount, deleteBundleDiscount } from "../lib/bundle-utils.js";
+
+const METAFIELD_KEY = "product_page";
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
-  const savedConfig = await getBundleConfig(admin.graphql);
+  const savedConfig = await getBundleConfig(admin.graphql, METAFIELD_KEY);
   
   if (savedConfig && savedConfig.products && savedConfig.products.length > 0) {
-    // Fetch current product details (title, image) to ensure UI is up to date
     const productIds = savedConfig.products.map(p => p.id);
     const response = await admin.graphql(`#graphql
       query getProducts($ids: [ID!]!) {
@@ -54,7 +55,6 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
-  console.log("ROUTE ACTION: Hit");
   if (request.method !== 'POST') {
     return { success: false, error: 'Method not allowed' };
   }
@@ -63,7 +63,6 @@ export const action = async ({ request }) => {
     const { admin } = await authenticate.admin(request);
     const clonedRequest = request.clone();
     const bodyText = await clonedRequest.text();
-    console.log("ROUTE ACTION: Body received:", bodyText.substring(0, 100));
     
     if (!bodyText) {
       return { success: false, error: 'Empty request body' };
@@ -73,26 +72,65 @@ export const action = async ({ request }) => {
     try {
       data = JSON.parse(bodyText);
     } catch (parseErr) {
-      console.error("ROUTE ACTION: JSON Parse Error", parseErr);
       return { success: false, error: `JSON parse error: ${parseErr.message}` };
     }
     
     const config = data.config;
     if (!config) {
-      console.error("ROUTE ACTION: No config in body");
       return { success: false, error: 'No config provided' };
     }
 
-    const success = await setBundleConfig(admin, config);
-    console.log("ROUTE ACTION: setBundleConfig success:", success);
+    // 1. Get old config to identify removed tiers
+    const oldConfig = await getBundleConfig(admin.graphql, METAFIELD_KEY);
+    const oldTiers = oldConfig?.discounts || [];
+    const newTiers = config.discounts || [];
+
+    console.log("ROUTE ACTION (Product): Old tiers count:", oldTiers.length);
+    console.log("ROUTE ACTION (Product): New tiers count:", newTiers.length);
+
+    console.log("ROUTE ACTION (Product): Config received:", JSON.stringify(config));
+    const success = await setBundleConfig(admin, config, METAFIELD_KEY);
+
+    let discountErrors = [];
+    if (success) {
+      // 2. Delete removed tiers
+      const prefix = "fuprbl";
+      console.log("ROUTE ACTION (Product): Checking for tiers to delete...");
+      for (const oldTier of oldTiers) {
+        const isStillPresent = newTiers.some(t => Number(t.percentage) === Number(oldTier.percentage));
+        console.log(`ROUTE ACTION (Product): Checking old tier ${oldTier.percentage}%. Still present? ${isStillPresent}`);
+        if (!isStillPresent) {
+          const code = `${prefix}-${oldTier.percentage}`;
+          console.log(`ROUTE ACTION (Product): Calling deleteBundleDiscount for: ${code}`);
+          const result = await deleteBundleDiscount(admin, code);
+          if (!result.success) {
+            console.error(`ROUTE ACTION (Product): Failed to delete ${code}: ${result.error}`);
+          } else {
+            console.log(`ROUTE ACTION (Product): Delete call for ${code} finished.`);
+          }
+        }
+      }
+
+      // 3. Create/Update current tiers
+      if (newTiers && Array.isArray(newTiers)) {
+        for (const tier of newTiers) {
+          const result = await createBundleDiscount(admin, tier, prefix);
+          if (!result.success) {
+            discountErrors.push(`Tier ${tier.percentage}%: ${result.error}`);
+          }
+        }
+      }
+    }
 
     if (success) {
-      return { success: true, error: null };
+      return { 
+        success: discountErrors.length === 0, 
+        error: discountErrors.length > 0 ? "Metafield saved but discounts failed: " + discountErrors.join(", ") : null 
+      };
     } else {
       return { success: false, error: 'Failed to save to metafield' };
     }
   } catch (error) {
-    console.error("ROUTE ACTION: Unhandled Error", error);
     return {
       success: false,
       error: error?.message || 'Unknown server error',
@@ -100,7 +138,7 @@ export const action = async ({ request }) => {
   }
 };
 
-export default function BundleConfig() {
+export default function ProductBundle() {
   const { initialConfig } = useLoaderData();
   const actionData = useActionData();
   const navigation = useNavigation();
@@ -176,7 +214,7 @@ export default function BundleConfig() {
   };
 
   return (
-    <s-page heading="Bundle Configuration">
+    <s-page heading="Product Bundle">
       {saveStatus && (
         <div style={{
           padding: '12px 16px',
@@ -199,7 +237,7 @@ export default function BundleConfig() {
       </s-button>
 
       <s-section heading="Products">
-        <s-paragraph>Select the products that will be available in the bundle builder.</s-paragraph>
+        <s-paragraph>Select the products that will be available in the product bundle.</s-paragraph>
         <s-stack direction="block" gap="base">
           <s-stack direction="inline" gap="base">
             <s-button onClick={handleSelectProducts}>
