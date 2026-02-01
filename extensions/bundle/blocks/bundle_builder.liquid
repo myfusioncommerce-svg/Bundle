@@ -586,38 +586,46 @@
       }
 
       function checkout(button) {
-        const container = getContainer(button);
-        const selectedItems = getSelectedItems(container);
-        if (selectedItems.length === 0) return;
+  const container = getContainer(button);
+  const selectedItems = getSelectedItems(container);
+  if (selectedItems.length === 0) return;
 
-        const itemCount = selectedItems.length;
-        const discounts = JSON.parse(container.dataset.discounts || '[]');
-        const prefix = container.dataset.prefix || 'fubndl';
-        const sortedDiscounts = [...discounts].sort((a, b) => a.count - b.count);
-        
-        let currentDiscount = 0;
-        sortedDiscounts.forEach(d => {
-          if (itemCount >= d.count) {
-            currentDiscount = d.percentage;
-          }
-        });
+  const itemCount = selectedItems.length;
+  const discounts = JSON.parse(container.dataset.discounts || '[]');
+  const prefix = container.dataset.prefix || 'fubndl';
 
-        const items = selectedItems.reduce((acc, item) => {
-          acc[item.variantId] = (acc[item.variantId] || 0) + 1;
-          return acc;
-        }, {});
+  // Sort tiers ascending
+  const sortedDiscounts = [...discounts].sort((a, b) => a.count - b.count);
 
-        const cartParams = Object.entries(items)
-          .map(([id, qty]) => `${id}:${qty}`)
-          .join(',');
+  // Pick highest valid tier
+  let appliedTier = null;
+  sortedDiscounts.forEach(tier => {
+    if (itemCount >= tier.count) {
+      appliedTier = tier;
+    }
+  });
 
-        let url = `/cart/${cartParams}`;
-        if (currentDiscount > 0) {
-          url += `?discount=${prefix}-${currentDiscount}`;
-        }
-        
-        window.location.href = url;
-      }
+  // Build cart items
+  const items = selectedItems.reduce((acc, item) => {
+    acc[item.variantId] = (acc[item.variantId] || 0) + 1;
+    return acc;
+  }, {});
+
+  const cartParams = Object.entries(items)
+    .map(([id, qty]) => `${id}:${qty}`)
+    .join(',');
+
+  let url = `/cart/${cartParams}`;
+
+  // ✅ AUTO-APPLY DISCOUNT
+  if (appliedTier) {
+    const discountCode = `${prefix}-${appliedTier.percentage}`;
+    url += `?discount=${encodeURIComponent(discountCode)}`;
+  }
+
+  window.location.href = url;
+}
+
 
       function openModal(url) {
         const modal = document.getElementById('bundle-product-modal');
