@@ -17,8 +17,8 @@ export default function App() {
     <AppProvider embedded apiKey={apiKey}>
       <s-app-nav>
         <s-link href="/app">Bundle Configuration</s-link>
-        <s-link href="/app/product-bundle">Product Bundle</s-link>
-        <s-link href="/app/analytics">Analytics</s-link>
+        {/* <s-link href="/app/product-bundle">Product Bundle</s-link>
+        <s-link href="/app/analytics">Analytics</s-link> */}
         <s-link href="/app/privacy-policy">Privacy Policy</s-link>
         <s-link href="/app/contact-us">Contact Us</s-link>
         <s-link href="/app/faq">FAQ</s-link>
