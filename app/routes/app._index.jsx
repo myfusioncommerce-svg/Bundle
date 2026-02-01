@@ -392,6 +392,20 @@ export default function Index() {
         </s-stack>
       </s-section>
 
+      <s-section heading="Theme Integration">
+        <s-box padding="base" borderWidth="base" borderRadius="base">
+          <s-stack direction="block" gap="base">
+            <s-text>To display the bundle builder on your store, you need to add the app block to your product page template.</s-text>
+            <s-button 
+              variant="primary" 
+              onClick={() => window.open(deepLinkUrl, '_blank')}
+            >
+              Add App Block to Theme
+            </s-button>
+          </s-stack>
+        </s-box>
+      </s-section>
+
       <style>{`
         .discount-input-row {
           display: flex;
