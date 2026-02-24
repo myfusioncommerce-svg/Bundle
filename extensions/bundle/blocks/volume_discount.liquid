@@ -1,0 +1,314 @@
+{% comment %} 
+  Use the product from settings if provided (useful for Home Page), 
+  otherwise fallback to the global product object.
+{% endcomment %}
+{% assign target_product = block.settings.manual_product | default: product %}
+
+{% assign config = shop.metafields.bundle_builder.volume_discount.value %}
+{% assign is_applicable = false %}
+
+{% if target_product %}
+  {% assign current_product_id = target_product.id | append: "" %}
+
+  {% for item in config.products %}
+    {% assign config_id = item.id | split: '/' | last %}
+    {% if item.handle == target_product.handle or config_id == current_product_id %}
+      {% assign is_applicable = true %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% comment %} Add debug info for Theme Editor {% endcomment %}
+{% if request.design_mode %}
+  {% if target_product == blank %}
+    <div style="padding: 20px; background: #fff4f4; border: 1px dashed #ff0000; border-radius: 8px; text-align: center;">
+      <strong>Volume Discount:</strong> No product detected. Please move this block to a <strong>Product Page</strong> or select a product in the <strong>block settings</strong> on the right.
+    </div>
+  {% elsif config == blank %}
+    <div style="padding: 20px; background: #fff4f4; border: 1px dashed #ff0000; border-radius: 8px; text-align: center;">
+      <strong>Volume Discount:</strong> App settings not found. Please save your configuration in the app admin.
+    </div>
+  {% elsif is_applicable == false %}
+    <div style="padding: 20px; background: #f4faff; border: 1px dashed #0088ff; border-radius: 8px; text-align: center;">
+      <strong>Volume Discount Info:</strong><br>
+      Product: "{{ target_product.title }}" ({{ target_product.handle }})<br>
+      Status: Not selected in app configuration.<br>
+      <em>Go to the app and add this product to the Volume Discount list.</em>
+    </div>
+  {% endif %}
+{% endif %}
+
+{% if is_applicable and config.discounts.size > 0 %}
+  {% assign sorted_discounts = config.discounts | sort: 'count' %}
+  {% assign current_variant = target_product.selected_or_first_available_variant %}
+  
+  <style>
+    .volume-discount-container {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #e1e1e1;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .volume-discount-title {
+      font-weight: bold;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+    }
+    .volume-discount-grid {
+      display: grid;
+      grid-template-columns: {% if block.settings.layout == 'vertical' %}1fr{% else %}repeat(auto-fit, minmax(120px, 1fr)){% endif %};
+      gap: 10px;
+    }
+    .volume-tier {
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      background: white;
+      transition: all 0.2s;
+      {% if block.settings.layout == 'vertical' %}
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+      {% endif %}
+    }
+    .volume-tier:hover {
+      border-color: #999;
+    }
+    .volume-tier.active {
+      border-color: {{ block.settings.accent_color | default: '#000' }};
+      background: {{ block.settings.accent_color | color_modify: 'alpha', 0.05 }};
+    }
+    .volume-tier .qty {
+      font-weight: bold;
+      display: block;
+      font-size: 1.2em;
+    }
+    .volume-tier .disc {
+      color: {{ block.settings.accent_color | default: '#d72c0d' }};
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+    .volume-buy-btn {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      background: {{ block.settings.accent_color | default: '#000' }};
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+
+  <div class="volume-discount-container" id="vol-disc-{{ section.id }}">
+    <div class="volume-discount-title">{{ block.settings.heading | default: 'Quantity Discounts' }}</div>
+    <div class="volume-discount-grid">
+      <div class="volume-tier active" data-qty="1" data-disc="0">
+        <span class="qty">1 Item</span>
+        <span class="disc">Standard Price</span>
+      </div>
+      {% for discount in sorted_discounts %}
+        <div class="volume-tier" data-qty="{{ discount.count }}" data-disc="{{ discount.percentage }}">
+          <span class="qty">{{ discount.count }}+ Items</span>
+          <span class="disc">{{ discount.percentage }}% OFF</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% if block.settings.show_block_button %}
+      <button class="volume-buy-btn" onclick="VolumeDiscountInstance.buy(this)">Add to Cart</button>
+    {% endif %}
+  </div>
+
+  <script>
+    var VolumeDiscountInstance = VolumeDiscountInstance || (function() {
+      const syncWithTheme = {{ block.settings.sync_with_theme | json }};
+      
+      document.querySelectorAll('.volume-tier').forEach(tier => {
+        tier.addEventListener('click', function() {
+          const container = this.closest('.volume-discount-container');
+          container.querySelectorAll('.volume-tier').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          if (syncWithTheme) {
+            updateThemeQuantity(this.dataset.qty);
+          }
+        });
+      });
+
+      function updateThemeQuantity(qty) {
+        // Try to find quantity input in standard Shopify themes
+        const qtyInputs = document.querySelectorAll('input[name="quantity"], input[id^="Quantity-"], .quantity__input, .qty-input');
+        qtyInputs.forEach(input => {
+          input.value = qty;
+          // Trigger change event for themes that listen to it
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          // Also try to trigger 'input' event
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      }
+
+      // Intercept theme buttons if sync is enabled and a discount is active
+      if (syncWithTheme) {
+        document.addEventListener('click', function(e) {
+          const btn = e.target.closest('button[name="add"], .shopify-payment-button__button, [data-testid="Checkout-button"], .add-to-cart, .atc-button, #AddToCart, .product-form__submit, .product-form__cart-submit');
+          if (!btn) return;
+
+          const container = document.querySelector('.volume-discount-container');
+          if (!container) return;
+
+          const activeTier = container.querySelector('.volume-tier.active');
+          if (!activeTier || activeTier.dataset.disc === "0") return;
+
+          // Determine if this is a "Buy Now" button (usually payment buttons)
+          const isCheckout = btn.classList.contains('shopify-payment-button__button') || 
+                            btn.getAttribute('data-testid') === 'Checkout-button' ||
+                            btn.closest('.shopify-payment-button') ||
+                            btn.classList.contains('buy-now-button');
+
+          // ✅ VERIFY PRODUCT ELIGIBILITY BEFORE INTERCEPTING
+          // This prevents the volume discount from applying to other products (like BXGY products) 
+          // that might be on the same page or in different sections.
+          const isEligible = {{ is_applicable | json }};
+          if (!isEligible) return;
+
+          e.preventDefault();
+          e.stopPropagation();
+          VolumeDiscountInstance.buy(activeTier, isCheckout);
+        }, true);
+      }
+
+      return {
+        buy: function(el, isCheckout = false) {
+          const container = el.closest ? el.closest('.volume-discount-container') : document.querySelector('.volume-discount-container');
+          const activeTier = el.classList.contains('volume-tier') ? el : container.querySelector('.volume-tier.active');
+          
+          const qty = activeTier.dataset.qty;
+          const disc = activeTier.dataset.disc;
+          
+          // Dynamically get current variant ID (handles variant changes on product page)
+          const getVariantId = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const variantFromUrl = urlParams.get('variant');
+            if (variantFromUrl) return variantFromUrl;
+
+            const variantInput = document.querySelector('form[action*="/cart/add"] input[name="id"], input[name="id"], select[name="id"]');
+            if (variantInput && variantInput.value) return variantInput.value;
+
+            return '{{ current_variant.id }}';
+          };
+
+          const variantId = getVariantId();
+          const prefix = 'fuvold';
+          const clearCart = {{ block.settings.clear_cart_on_add | default: false | json }};
+
+          const performAdd = () => {
+            if (disc > 0) {
+              const code = prefix + '-' + disc;
+              
+              if (isCheckout) {
+                // Redirect to checkout with discount (clears cart by using /cart/ID:QTY format)
+                window.location.href = '/cart/' + variantId + ':' + qty + '?discount=' + encodeURIComponent(code);
+              } else {
+                // Add to cart via AJAX first, then redirect to apply discount and show cart
+                fetch('/cart/add.js', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ items: [{ id: variantId, quantity: qty }] })
+                }).then(() => {
+                  window.location.href = '/discount/' + encodeURIComponent(code) + '?redirect=/cart';
+                });
+              }
+            } else {
+              // Normal add to cart/checkout
+              if (isCheckout) {
+                 window.location.href = '/cart/' + variantId + ':' + qty;
+              } else {
+                fetch('/cart/add.js', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ items: [{ id: variantId, quantity: qty }] })
+                }).then(() => {
+                  window.location.href = '/cart';
+                });
+              }
+            }
+          };
+
+          if (clearCart) {
+            fetch('/cart/clear.js', { method: 'POST' }).then(performAdd);
+          } else {
+            performAdd();
+          }
+        }
+      };
+    })();
+  </script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Volume Discount",
+  "target": "section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "manual_product",
+      "label": "Manual Product Selection",
+      "info": "Use this if the block is on a non-product page or for testing."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Buy More, Save More!"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout Direction",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal (Grid)" },
+        { "value": "vertical", "label": "Vertical (List)" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Button Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_block_button",
+      "label": "Show App Button",
+      "default": true,
+      "info": "Display the built-in 'Add to Cart' button within this block."
+    },
+    {
+      "type": "checkbox",
+      "id": "sync_with_theme",
+      "label": "Sync with Theme Buttons",
+      "default": false,
+      "info": "Automatically update the theme's quantity selector and intercept the theme's 'Add to Cart' button to apply discounts."
+    },
+    {
+      "type": "checkbox",
+      "id": "clear_cart_on_add",
+      "label": "Clear Cart Before Adding",
+      "default": false,
+      "info": "If checked, all other items will be removed from the cart when this bundle is added."
+    }
+  ]
+}
+{% endschema %}

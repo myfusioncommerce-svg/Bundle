@@ -409,7 +409,7 @@
               <h3>{{ product.title }}</h3>
               <p class="price">{{ product.price | money }}</p>
               <button class="details-link" onclick="BundleInstance.openModal('{{ product.url }}')">Product details ↗</button>
-              <button class="add-to-bundle-btn" onclick="BundleInstance.toggle(this)">Add</button>
+              <button class="add-to-bundle-btn" onclick="BundleInstance.toggleFromGrid(this)">Add</button>
             </div>
           </div>
         {% endif %}
@@ -469,6 +469,13 @@
           <div class="bundle-modal__info">
             <h2 id="modal-product-title" class="bundle-modal__title"></h2>
             <div id="modal-product-price" class="bundle-modal__price"></div>
+            
+            <div id="modal-variant-selector-container" style="margin-bottom: 20px; display: none;">
+              <label for="modal-variant-select" style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Select Option:</label>
+              <select id="modal-variant-select" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd; font-family: inherit;">
+              </select>
+            </div>
+
             <div id="modal-product-description" class="bundle-modal__description"></div>
             
             <button class="add-to-bundle-btn modal-add-btn" onclick="BundleInstance.toggleFromModal(this)">Add to Bundle</button>
@@ -493,32 +500,44 @@
         return selectedItemsMap.get(container);
       }
 
-      function toggle(button) {
+      function toggle(variantId, price, title, container, buttonToSync = null) {
+        if (!variantId) {
+          console.error('Bundle Builder: Missing variant ID');
+          return;
+        }
+
+        const selectedItems = getSelectedItems(container);
+        const index = selectedItems.findIndex(item => String(item.variantId) === String(variantId));
+
+        if (index > -1) {
+          selectedItems.splice(index, 1);
+        } else {
+          selectedItems.push({ variantId, price, title });
+        }
+
+        // Sync ALL buttons on the page with this variant ID
+        document.querySelectorAll(`.add-to-bundle-btn[data-variant-id="${variantId}"]`).forEach(btn => {
+            const isModal = btn.classList.contains('modal-add-btn');
+            if (index > -1) {
+                btn.innerText = isModal ? 'Add to Bundle' : 'Add';
+                btn.classList.remove('added');
+            } else {
+                btn.innerText = isModal ? 'Added to Bundle' : 'Added';
+                btn.classList.add('added');
+            }
+        });
+
+        updateUI(container);
+      }
+
+      function toggleFromGrid(button) {
         const container = getContainer(button);
         const card = button.closest('.bundle-product-card');
         const variantId = card.dataset.variantId;
         const price = parseInt(card.dataset.price) || 0;
         const title = card.querySelector('h3').innerText;
-
-        if (!variantId) {
-          console.error('Bundle Builder: Missing variant ID for product', title);
-          return;
-        }
-
-        const selectedItems = getSelectedItems(container);
-        const index = selectedItems.findIndex(item => item.variantId === variantId);
-
-        if (index > -1) {
-          selectedItems.splice(index, 1);
-          button.innerText = 'Add';
-          button.classList.remove('added');
-        } else {
-          selectedItems.push({ variantId, price, title });
-          button.innerText = 'Added';
-          button.classList.add('added');
-        }
-
-        updateUI(container);
+        
+        toggle(variantId, price, title, container, button);
       }
 
       function updateUI(container) {
@@ -642,17 +661,58 @@
             document.getElementById('modal-product-image').alt = product.title;
 
             const addBtn = modal.querySelector('.modal-add-btn');
-            addBtn.dataset.variantId = product.variants[0].id;
+            const variantContainer = document.getElementById('modal-variant-selector-container');
+            const variantSelect = document.getElementById('modal-variant-select');
             
-            // Sync button state with main grid
-            const mainGridBtn = document.querySelector(`.bundle-product-card[data-variant-id="${product.variants[0].id}"] .add-to-bundle-btn`);
-            if (mainGridBtn && mainGridBtn.classList.contains('added')) {
-              addBtn.innerText = 'Added to Bundle';
-              addBtn.classList.add('added');
+            // Clear previous options
+            variantSelect.innerHTML = '';
+            
+            if (product.variants.length > 1) {
+              variantContainer.style.display = 'block';
+              product.variants.forEach(variant => {
+                const option = document.createElement('option');
+                option.value = variant.id;
+                option.dataset.price = variant.price;
+                option.dataset.image = variant.featured_image ? variant.featured_image.src : product.featured_image;
+                option.innerText = variant.title + ' - ' + formatMoney(variant.price, getContainer(modal));
+                variantSelect.appendChild(option);
+              });
+
+              variantSelect.onchange = function() {
+                const selectedOption = this.options[this.selectedIndex];
+                addBtn.dataset.variantId = this.value;
+                document.getElementById('modal-product-price').innerText = formatMoney(selectedOption.dataset.price, getContainer(modal));
+                if (selectedOption.dataset.image) {
+                    document.getElementById('modal-product-image').src = selectedOption.dataset.image;
+                }
+                updateModalButtonState(this.value, addBtn);
+              };
+              
+              addBtn.dataset.variantId = product.variants[0].id;
             } else {
-              addBtn.innerText = 'Add to Bundle';
-              addBtn.classList.remove('added');
+              variantContainer.style.display = 'none';
+              addBtn.dataset.variantId = product.variants[0].id;
             }
+            
+            function updateModalButtonState(variantId, btn) {
+                // Sync button state with main grid or internal state
+                const mainGridBtn = document.querySelector(`.bundle-product-card[data-variant-id="${variantId}"] .add-to-bundle-btn`);
+                
+                // Note: If variant is not in main grid, we check if it's already in the selected items
+                const container = getContainer(modal);
+                const selectedItems = getSelectedItems(container);
+                const isSelected = selectedItems.some(item => String(item.variantId) === String(variantId));
+
+                if (isSelected) {
+                  btn.innerText = 'Added to Bundle';
+                  btn.classList.add('added');
+                } else {
+                  btn.innerText = 'Add to Bundle';
+                  btn.classList.remove('added');
+                }
+            }
+
+            updateModalButtonState(product.variants[0].id, addBtn);
 
             modal.classList.remove('is-loading');
           })
@@ -669,24 +729,26 @@
       }
 
       function toggleFromModal(button) {
+        const modal = button.closest('.bundle-modal');
+        const container = getContainer(modal);
         const variantId = button.dataset.variantId;
-        const mainGridBtn = document.querySelector(`.bundle-product-card[data-variant-id="${variantId}"] .add-to-bundle-btn`);
+        const title = document.getElementById('modal-product-title').innerText;
         
-        if (mainGridBtn) {
-          toggle(mainGridBtn);
-          
-          // Sync modal button text
-          if (mainGridBtn.classList.contains('added')) {
-            button.innerText = 'Added to Bundle';
-            button.classList.add('added');
-          } else {
-            button.innerText = 'Add to Bundle';
-            button.classList.remove('added');
-          }
+        // Get price from select if multi-variant, or from modal price text
+        let price = 0;
+        const variantSelect = document.getElementById('modal-variant-select');
+        if (variantSelect && variantSelect.options.length > 0) {
+            price = parseInt(variantSelect.options[variantSelect.selectedIndex].dataset.price);
+        } else {
+            // Fallback to searching in main grid
+            const mainGridCard = document.querySelector(`.bundle-product-card[data-variant-id="${variantId}"]`);
+            if (mainGridCard) price = parseInt(mainGridCard.dataset.price);
         }
+        
+        toggle(variantId, price, title, container, button);
       }
 
-      return { toggle, checkout, openModal, closeModal, toggleFromModal };
+      return { toggle, toggleFromGrid, checkout, openModal, closeModal, toggleFromModal };
     })();
   </script>
 {% endif %}

@@ -33,11 +33,13 @@ export const loader = async ({ request }) => {
   const responseJson = await response.json();
   const orders = responseJson.data?.orders?.nodes || [];
 
-  // Filter orders that used our bundle discounts (prefixes: fubndl-, fuprbl-)
+  // Filter orders that used our bundle discounts (prefixes: fubndl-, fuprbl-, fuvold-, fubxgy-)
   const bundleOrders = orders.filter(order => 
     order.discountCodes.some(code => 
       code.toLowerCase().startsWith('fubndl-') || 
-      code.toLowerCase().startsWith('fuprbl-')
+      code.toLowerCase().startsWith('fuprbl-') ||
+      code.toLowerCase().startsWith('fuvold-') ||
+      code.toLowerCase().startsWith('fubxgy-')
     )
   ).map(order => ({
     id: order.id,
@@ -47,7 +49,9 @@ export const loader = async ({ request }) => {
     currency: order.totalPriceSet.presentmentMoney.currencyCode,
     discountCode: order.discountCodes.find(code => 
       code.toLowerCase().startsWith('fubndl-') || 
-      code.toLowerCase().startsWith('fuprbl-')
+      code.toLowerCase().startsWith('fuprbl-') ||
+      code.toLowerCase().startsWith('fuvold-') ||
+      code.toLowerCase().startsWith('fubxgy-')
     ),
     discountAmount: order.totalDiscountsSet.presentmentMoney.amount
   }));
@@ -56,8 +60,20 @@ export const loader = async ({ request }) => {
     acc.totalSales += parseFloat(order.total);
     acc.totalDiscounts += parseFloat(order.discountAmount);
     acc.orderCount += 1;
+
+    const code = (order.discountCode || "").toLowerCase();
+    if (code.startsWith('fubndl-')) acc.typeBreakdown.bundleBuilder += 1;
+    else if (code.startsWith('fuprbl-')) acc.typeBreakdown.productBundle += 1;
+    else if (code.startsWith('fuvold-')) acc.typeBreakdown.volumeDiscount += 1;
+    else if (code.startsWith('fubxgy-')) acc.typeBreakdown.bxgy += 1;
+
     return acc;
-  }, { totalSales: 0, totalDiscounts: 0, orderCount: 0 });
+  }, { 
+    totalSales: 0, 
+    totalDiscounts: 0, 
+    orderCount: 0,
+    typeBreakdown: { bundleBuilder: 0, productBundle: 0, volumeDiscount: 0, bxgy: 0 }
+  });
 
   return { bundleOrders, stats };
 };
@@ -66,7 +82,7 @@ export default function Analytics() {
   const { bundleOrders, stats } = useLoaderData();
 
   return (
-    <s-page heading="Bundle Analytics">
+    <s-page>
       <s-layout>
         <s-layout-section>
           <s-stack direction="inline" gap="base" distribution="fill">
@@ -93,6 +109,37 @@ export default function Analytics() {
               </s-stack>
             </s-box>
           </s-stack>
+        </s-layout-section>
+
+        <s-layout-section>
+          <s-section heading="Bundle Type Breakdown">
+            <s-stack direction="inline" gap="base" distribution="fill">
+              <s-box padding="base" borderWidth="base" borderRadius="base">
+                <s-stack direction="block" gap="tight" align="center">
+                  <s-text font-size="small">Bundle Builder</s-text>
+                  <s-text font-weight="bold">{stats.typeBreakdown.bundleBuilder} orders</s-text>
+                </s-stack>
+              </s-box>
+              <s-box padding="base" borderWidth="base" borderRadius="base">
+                <s-stack direction="block" gap="tight" align="center">
+                  <s-text font-size="small">Product Bundle</s-text>
+                  <s-text font-weight="bold">{stats.typeBreakdown.productBundle} orders</s-text>
+                </s-stack>
+              </s-box>
+              <s-box padding="base" borderWidth="base" borderRadius="base">
+                <s-stack direction="block" gap="tight" align="center">
+                  <s-text font-size="small">Volume Discount</s-text>
+                  <s-text font-weight="bold">{stats.typeBreakdown.volumeDiscount} orders</s-text>
+                </s-stack>
+              </s-box>
+              <s-box padding="base" borderWidth="base" borderRadius="base">
+                <s-stack direction="block" gap="tight" align="center">
+                  <s-text font-size="small">Buy X Get Y</s-text>
+                  <s-text font-weight="bold">{stats.typeBreakdown.bxgy} orders</s-text>
+                </s-stack>
+              </s-box>
+            </s-stack>
+          </s-section>
         </s-layout-section>
 
         <s-layout-section>

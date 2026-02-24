@@ -1,6 +1,6 @@
 export default function FAQ() {
   return (
-    <s-page heading="Frequently Asked Questions">
+    <s-page>
       <s-section heading="General">
         <s-stack direction="block" gap="base">
           <div>

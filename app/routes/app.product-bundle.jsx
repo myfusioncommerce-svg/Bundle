@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLoaderData, useSubmit, useActionData, useNavigation } from "react-router";
+import { useLoaderData, useSubmit, useActionData, useNavigation, useOutletContext } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { getBundleConfig, setBundleConfig, createBundleDiscount, deleteBundleDiscount } from "../lib/bundle-utils.js";
@@ -144,11 +144,21 @@ export default function ProductBundle() {
   const navigation = useNavigation();
   const submit = useSubmit();
   const shopify = useAppBridge();
+  const { setSaveAction, setIsSaving } = useOutletContext();
   
   const [products, setProducts] = useState(initialConfig?.products || []);
   const [discounts, setDiscounts] = useState(initialConfig?.discounts || []);
   const [saveStatus, setSaveStatus] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    setSaveAction(() => handleSave);
+    return () => setSaveAction(null);
+  }, [products, discounts, setSaveAction]);
+
+  useEffect(() => {
+    setIsSaving(navigation.state === "submitting");
+  }, [navigation.state, setIsSaving]);
 
   useEffect(() => {
     if (actionData) {
@@ -214,7 +224,7 @@ export default function ProductBundle() {
   };
 
   return (
-    <s-page heading="Product Bundle">
+    <s-page>
       {saveStatus && (
         <div style={{
           padding: '12px 16px',
@@ -227,14 +237,6 @@ export default function ProductBundle() {
           {saveStatus.message}
         </div>
       )}
-      <s-button 
-        slot="primary-action" 
-        variant="primary" 
-        onClick={handleSave}
-        loading={navigation.state === "submitting" ? "true" : undefined}
-      >
-        Save Configuration
-      </s-button>
 
       <s-section heading="Products">
         <s-paragraph>Select the products that will be available in the product bundle.</s-paragraph>

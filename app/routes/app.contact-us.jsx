@@ -25,7 +25,7 @@ export default function ContactUs() {
   }, [actionData, shopify]);
 
   return (
-    <s-page heading="Contact Us">
+    <s-page>
       <s-section heading="Send us a Message">
         <Form method="post">
           <s-stack direction="block" gap="base">

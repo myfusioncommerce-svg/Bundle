@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLoaderData, useSubmit, useActionData, useNavigation } from "react-router";
+import { useLoaderData, useSubmit, useActionData, useNavigation, useOutletContext } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { getBundleConfig, setBundleConfig, createBundleDiscount, deleteBundleDiscount } from "../lib/bundle-utils.js";
@@ -161,6 +161,7 @@ export default function Index() {
   const navigation = useNavigation();
   const submit = useSubmit();
   const shopify = useAppBridge();
+  const { setSaveAction, setIsSaving } = useOutletContext();
   
   const [products, setProducts] = useState(initialConfig?.products || []);
   const [discounts, setDiscounts] = useState(initialConfig?.discounts || []);
@@ -168,6 +169,15 @@ export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const deepLinkUrl = `https://${shop}/admin/themes/current/editor?addAppBlockId=a556b982b72af329f9965df4922e2761/bundle_builder`;
+
+  useEffect(() => {
+    setSaveAction(() => handleSave);
+    return () => setSaveAction(null);
+  }, [products, discounts, setSaveAction]);
+
+  useEffect(() => {
+    setIsSaving(navigation.state === "submitting");
+  }, [navigation.state, setIsSaving]);
 
   useEffect(() => {
     if (actionData) {
@@ -233,7 +243,7 @@ export default function Index() {
   };
 
   return (
-    <s-page heading="Bundle Configuration">
+    <s-page>
       {saveStatus && (
         <div style={{
           padding: '12px 16px',
@@ -246,22 +256,7 @@ export default function Index() {
           {saveStatus.message}
         </div>
       )}
-      <s-button 
-        slot="primary-action" 
-        variant="primary" 
-        onClick={handleSave}
-        loading={navigation.state === "submitting" ? "true" : undefined}
-      >
-        Save Configuration
-      </s-button>
       
-      <s-button 
-        slot="primary-action" 
-        onClick={() => window.open(deepLinkUrl, '_blank')}
-      >
-        Add to Store
-      </s-button>
-
       <s-section heading="Products">
         <s-paragraph>Select the products that will be available in the bundle builder.</s-paragraph>
         <s-stack direction="block" gap="base">
@@ -397,10 +392,9 @@ export default function Index() {
           <s-stack direction="block" gap="base">
             <s-text>To display the bundle builder on your store, you need to add the app block to your product page template.</s-text>
             <s-button 
-              variant="primary" 
               onClick={() => window.open(deepLinkUrl, '_blank')}
             >
-              Add App Block to Theme
+              Add to Store
             </s-button>
           </s-stack>
         </s-box>

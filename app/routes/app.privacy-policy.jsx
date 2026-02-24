@@ -1,6 +1,6 @@
 export default function PrivacyPolicy() {
   return (
-    <s-page heading="Privacy Policy">
+    <s-page>
       <s-section heading="Information Collection">
         <s-paragraph>
           We collect information from you when you use our app, including your shop name, 
