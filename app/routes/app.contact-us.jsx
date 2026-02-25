@@ -1,15 +1,43 @@
 import { useEffect } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import nodemailer from "nodemailer";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
 
-  console.log("Contact Form Submission:", data);
+  const transporter = nodemailer.createTransport({
+    host: "smtp.zeptomail.in",
+    port: 587,
+    auth: {
+      user: "emailapikey",
+      pass: "********", // Replace with your actual password
+    },
+  });
 
-  // In a real app, you would send this to an email service or database
-  return { success: true };
+  const mailOptions = {
+    from: '"Example Team" <noreply@fusioncommerce.online>',
+    to: "myfusioncommerce@gmail.com",
+    subject: `Contact Form: ${data.subject}`,
+    html: `
+      <h3>New Contact Form Submission</h3>
+      <p><strong>Name:</strong> ${data.name}</p>
+      <p><strong>Email:</strong> ${data.email}</p>
+      <p><strong>Phone:</strong> ${data.countryCode} ${data.phone}</p>
+      <p><strong>Subject:</strong> ${data.subject}</p>
+      <p><strong>Message:</strong></p>
+      <p>${data.message}</p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return { success: false, error: "Failed to send message." };
+  }
 };
 
 export default function ContactUs() {
@@ -21,6 +49,8 @@ export default function ContactUs() {
   useEffect(() => {
     if (actionData?.success) {
       shopify.toast.show("Message sent successfully!");
+    } else if (actionData?.error) {
+      shopify.toast.show(actionData.error, { isError: true });
     }
   }, [actionData, shopify]);
 

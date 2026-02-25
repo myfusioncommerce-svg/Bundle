@@ -5,3 +5,8 @@ webhooks_path = "/webhooks/app/uninstalled"
 [commands]
 predev = "npx prisma generate"
 dev = "npx prisma migrate deploy && npm exec react-router dev"
+
+ZEPTOMAIL_TOKEN=PHtE6r1bQO3q3m8s8BAA4fW8EJX1Z459+7lleQhPs4tECPUDGk1TrNEsmmflqUgiVfEXQPafytpotbPJ4r7TIWnuYGsaWmqyqK3sx/VYSPOZsbq6x00ZslUedULbV4XvcdVq0CHUuNrcNA==
+ZEPTOMAIL_SENDER_EMAIL=noreply@fusioncommerce.online
+ZEPTOMAIL_SENDER_NAME=Fussion support
+CONTACT_ADMIN_EMAIL=myfusioncommerce@gmail.com

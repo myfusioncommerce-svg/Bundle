@@ -29,3 +29,4 @@ scopes = "write_products,write_discounts"
 
 [auth]
 redirect_urls = [ "https://bundle-o3o3.onrender.com/api/auth" ]
+
