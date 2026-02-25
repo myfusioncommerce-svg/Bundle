@@ -12,7 +12,7 @@ export const action = async ({ request }) => {
     port: 587,
     auth: {
       user: "emailapikey",
-      pass: "********", // Replace with your actual password
+      pass: "PHtE6r1bQO3q3m8s8BAA4fW8EJX1Z459+7lleQhPs4tECPUDGk1TrNEsmmflqUgiVfEXQPafytpotbPJ4r7TIWnuYGsaWmqyqK3sx/VYSPOZsbq6x00ZslUedULbV4XvcdVq0CHUuNrcNA==", // Replace with your actual password
     },
   });
 
