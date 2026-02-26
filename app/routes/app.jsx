@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Outlet, useLoaderData, useRouteError, useLocation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { authenticate } from "../shopify.server";
+import shopify, { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
@@ -10,9 +10,16 @@ export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
   return {
-    apiKey: process.env.SHOPIFY_API_KEY || "",
+    apiKey: shopify.config.apiKey,
     host: url.searchParams.get("host") || "",
   };
+};
+
+export const meta = ({ data }) => {
+  return [
+    { name: "shopify-api-key", content: data?.apiKey },
+    { name: "shopify-host", content: data?.host },
+  ];
 };
 
 export default function App() {
@@ -35,7 +42,7 @@ export default function App() {
   const currentTitle = titles[location.pathname] || "Bundle Builder";
 
   return (
-    <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
+    <AppProvider apiKey={apiKey} host={host}>
       <s-app-nav>
         <s-link href="/app">Bundle Configuration</s-link>
         {/* <s-link href="/app/product-bundle">Product Bundle</s-link>
