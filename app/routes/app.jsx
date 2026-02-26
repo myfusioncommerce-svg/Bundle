@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Outlet, useLoaderData, useRouteError, useLocation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import shopify, { authenticate } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
@@ -10,7 +10,7 @@ export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
   return {
-    apiKey: shopify.config.apiKey,
+    apiKey: process.env.SHOPIFY_API_KEY || "",
     host: url.searchParams.get("host") || "",
   };
 };
