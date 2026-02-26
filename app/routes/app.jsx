@@ -7,12 +7,16 @@ import { authenticate } from "../shopify.server";
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
 
-  // eslint-disable-next-line no-undef
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  const url = new URL(request.url);
+
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    host: url.searchParams.get("host") || "",
+  };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const { apiKey, host } = useLoaderData();
   const location = useLocation();
   const [saveAction, setSaveAction] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -31,7 +35,7 @@ export default function App() {
   const currentTitle = titles[location.pathname] || "Bundle Builder";
 
   return (
-    <AppProvider embedded apiKey={apiKey}>
+    <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
       <s-app-nav>
         <s-link href="/app">Bundle Configuration</s-link>
         {/* <s-link href="/app/product-bundle">Product Bundle</s-link>

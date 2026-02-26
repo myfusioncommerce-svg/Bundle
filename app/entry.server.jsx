@@ -14,20 +14,6 @@ export default async function handleRequest(
   reactRouterContext,
 ) {
   addDocumentResponseHeaders(request, responseHeaders);
-  
-  const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
-  if (shop) {
-    responseHeaders.set(
-      "Content-Security-Policy",
-      `frame-ancestors https://${shop} https://admin.shopify.com;`
-    );
-  } else {
-    responseHeaders.set(
-      "Content-Security-Policy",
-      "frame-ancestors https://admin.shopify.com;"
-    );
-  }
 
   const userAgent = request.headers.get("user-agent");
   const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
