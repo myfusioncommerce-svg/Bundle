@@ -1,43 +1,15 @@
 import { useEffect } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import nodemailer from "nodemailer";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.zeptomail.in",
-    port: 587,
-    auth: {
-      user: "emailapikey",
-      pass: process.env.ZEPTOMAIL_TOKEN,
-    },
-  });
+  console.log("Contact Form Submission:", data);
 
-  const mailOptions = {
-    from: `"${process.env.ZEPTOMAIL_SENDER_NAME}" <${process.env.ZEPTOMAIL_SENDER_EMAIL}>`,
-    to: process.env.CONTACT_ADMIN_EMAIL,
-    subject: `Contact Form: ${data.subject}`,
-    html: `
-      <h3>New Contact Form Submission</h3>
-      <p><strong>Name:</strong> ${data.name}</p>
-      <p><strong>Email:</strong> ${data.email}</p>
-      <p><strong>Phone:</strong> ${data.countryCode} ${data.phone}</p>
-      <p><strong>Subject:</strong> ${data.subject}</p>
-      <p><strong>Message:</strong></p>
-      <p>${data.message}</p>
-    `,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    return { success: true };
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return { success: false, error: "Failed to send message." };
-  }
+  // In a real app, you would send this to an email service or database
+  return { success: true };
 };
 
 export default function ContactUs() {
@@ -49,8 +21,6 @@ export default function ContactUs() {
   useEffect(() => {
     if (actionData?.success) {
       shopify.toast.show("Message sent successfully!");
-    } else if (actionData?.error) {
-      shopify.toast.show(actionData.error, { isError: true });
     }
   }, [actionData, shopify]);
 

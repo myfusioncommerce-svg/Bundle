@@ -2,28 +2,17 @@ import { useState } from "react";
 import { Outlet, useLoaderData, useRouteError, useLocation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import shopify, { authenticate } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
 
-  const url = new URL(request.url);
-
-  return {
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-    host: url.searchParams.get("host") || "",
-  };
-};
-
-export const meta = ({ data }) => {
-  return [
-    { name: "shopify-api-key", content: data?.apiKey },
-    { name: "shopify-host", content: data?.host },
-  ];
+  // eslint-disable-next-line no-undef
+  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
 
 export default function App() {
-  const { apiKey, host } = useLoaderData();
+  const { apiKey } = useLoaderData();
   const location = useLocation();
   const [saveAction, setSaveAction] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,12 +31,12 @@ export default function App() {
   const currentTitle = titles[location.pathname] || "Bundle Builder";
 
   return (
-    <AppProvider apiKey={apiKey} host={host}>
+    <AppProvider embedded apiKey={apiKey}>
       <s-app-nav>
         <s-link href="/app">Bundle Configuration</s-link>
-        {/* <s-link href="/app/product-bundle">Product Bundle</s-link>
+        <s-link href="/app/product-bundle">Product Bundle</s-link>
         <s-link href="/app/volume-discount">Volume Discount</s-link>
-        <s-link href="/app/bxgy">Buy X Get Y</s-link> */}
+        <s-link href="/app/bxgy">Buy X Get Y</s-link>
         <s-link href="/app/privacy-policy">Privacy Policy</s-link>
         <s-link href="/app/contact-us">Contact Us</s-link>
         <s-link href="/app/faq">FAQ</s-link>

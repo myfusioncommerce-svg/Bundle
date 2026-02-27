@@ -1,14 +1,6 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "react-router";
-
-export const loader = async () => {
-  return {
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-  };
-};
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 
 export default function App() {
-  const { apiKey } = useLoaderData();
-
   return (
     <html lang="en">
       <head>
@@ -19,9 +11,9 @@ export default function App() {
           rel="stylesheet"
           href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css"
         />
+        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
         <Meta />
         <Links />
-        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" data-api-key={apiKey}></script>
       </head>
       <body>
         <Outlet />
