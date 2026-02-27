@@ -1,0 +1,65 @@
+import { SendMailClient } from "zeptomail";
+
+/**
+ * ZeptoMail Region endpoints:
+ * US: https://api.zeptomail.com/
+ * EU: https://api.zeptomail.eu/
+ * IN: https://api.zeptomail.in/
+ * CN: https://api.zeptomail.com.cn/
+ * AU: https://api.zeptomail.com.au/
+ */
+const ZEPTOMAIL_URL = process.env.ZEPTOMAIL_URL || "https://api.zeptomail.com/";
+const ZEPTOMAIL_TOKEN = process.env.ZEPTOMAIL_TOKEN;
+const SENDER_EMAIL = process.env.SENDER_EMAIL || "support@zoww.app";
+const SENDER_NAME = process.env.SENDER_NAME || "Bundle Builder Support";
+
+export async function sendContactEmails({ customerName, customerEmail, message, shopDomain }) {
+  if (!ZEPTOMAIL_TOKEN) {
+    console.error("ZEPTOMAIL_TOKEN is not set in environment variables");
+    throw new Error("Email service is not configured.");
+  }
+
+  const client = new SendMailClient({
+    url: ZEPTOMAIL_URL,
+    token: ZEPTOMAIL_TOKEN,
+  });
+
+  try {
+    const result = await client.sendMail({
+      from: {
+        address: SENDER_EMAIL,
+        name: SENDER_NAME,
+      },
+      to: [
+        {
+          email_address: {
+            address: SENDER_EMAIL, // Send to support
+            name: SENDER_NAME,
+          },
+        },
+      ],
+      reply_to: [
+        {
+          address: customerEmail,
+          name: customerName,
+        },
+      ],
+      subject: `New Contact Form Submission from ${shopDomain}`,
+      htmlbody: `
+        <div>
+          <h2>New Contact Form Submission</h2>
+          <p><strong>Name:</strong> ${customerName}</p>
+          <p><strong>Email:</strong> ${customerEmail}</p>
+          <p><strong>Shop:</strong> ${shopDomain}</p>
+          <p><strong>Message:</strong></p>
+          <p>${message.replace(/\n/g, "<br>")}</p>
+        </div>
+      `,
+    });
+
+    return { success: true, message: "Email sent successfully", result };
+  } catch (error) {
+    console.error("ZeptoMail Error:", error);
+    throw error;
+  }
+}

@@ -82,6 +82,28 @@
       border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+    .bxgy-button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .btn-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: bxgy-spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    @keyframes bxgy-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .bxgy-gift-selector {
       display: flex;
@@ -234,8 +256,8 @@
           try {
               if (button.tagName === 'BUTTON') {
                 button.disabled = true;
-                if (button.innerText) button.dataset.oldText = button.innerText;
-                button.innerText = 'Adding Bundle...';
+                if (button.innerText) button.dataset.oldHtml = button.innerHTML;
+                button.innerHTML = '<span class="btn-spinner"></span> ' + (isCheckout ? 'Processing...' : 'Adding Bundle...');
               }
 
               const response = await fetch('/products/' + getProductHandle + '.js');
@@ -279,7 +301,7 @@
               if (!isCheckout) alert('Could not add bundle to cart.');
               if (button.tagName === 'BUTTON') {
                 button.disabled = false;
-                button.innerText = button.dataset.oldText || 'Claim This Offer';
+                if (button.dataset.oldHtml) button.innerHTML = button.dataset.oldHtml;
               }
           }
         }

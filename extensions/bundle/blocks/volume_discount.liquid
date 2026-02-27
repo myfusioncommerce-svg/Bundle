@@ -103,6 +103,28 @@
       border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+    .volume-buy-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .btn-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: vol-spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    @keyframes vol-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 
@@ -190,6 +212,19 @@
           
           const qty = activeTier.dataset.qty;
           const disc = activeTier.dataset.disc;
+
+          // Set loading state on button if it's the main app button
+          const button = container.querySelector('.volume-buy-btn');
+          if (button && el === button) {
+            button.disabled = true;
+            button.dataset.oldHtml = button.innerHTML;
+            button.innerHTML = '<span class="btn-spinner"></span> ' + (isCheckout ? 'Processing...' : 'Adding...');
+          } else if (el.tagName === 'BUTTON') {
+            // Handle intercepted theme buttons
+            el.disabled = true;
+            el.dataset.oldHtml = el.innerHTML;
+            el.innerHTML = '<span class="btn-spinner"></span> ' + (isCheckout ? 'Processing...' : 'Adding...');
+          }
           
           // Dynamically get current variant ID (handles variant changes on product page)
           const getVariantId = () => {
@@ -222,6 +257,9 @@
                   body: JSON.stringify({ items: [{ id: variantId, quantity: qty }] })
                 }).then(() => {
                   window.location.href = '/discount/' + encodeURIComponent(code) + '?redirect=/cart';
+                }).catch(err => {
+                  console.error('Volume Discount Error:', err);
+                  resetBtn();
                 });
               }
             } else {
@@ -235,13 +273,24 @@
                   body: JSON.stringify({ items: [{ id: variantId, quantity: qty }] })
                 }).then(() => {
                   window.location.href = '/cart';
+                }).catch(err => {
+                  console.error('Volume Discount Error:', err);
+                  resetBtn();
                 });
               }
             }
           };
 
+          const resetBtn = () => {
+            const btnToReset = (button && el === button) ? button : (el.tagName === 'BUTTON' ? el : null);
+            if (btnToReset) {
+              btnToReset.disabled = false;
+              if (btnToReset.dataset.oldHtml) btnToReset.innerHTML = btnToReset.dataset.oldHtml;
+            }
+          };
+
           if (clearCart) {
-            fetch('/cart/clear.js', { method: 'POST' }).then(performAdd);
+            fetch('/cart/clear.js', { method: 'POST' }).then(performAdd).catch(resetBtn);
           } else {
             performAdd();
           }

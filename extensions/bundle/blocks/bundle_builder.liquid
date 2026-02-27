@@ -113,9 +113,48 @@
     }
 
     .add-to-bundle-btn.added {
+      display: none;
+    }
+
+    .bundle-quantity-selector {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: #f4f4f4;
+      border-radius: 6px;
+      padding: 5px;
+      width: 100%;
+    }
+
+    .bundle-quantity-selector.is-active {
+      display: flex;
+    }
+
+    .qty-btn {
+      background: #fff;
+      border: 1px solid #ddd;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .qty-btn:hover {
       background: #eee;
-      color: #333;
-      border: 1px solid #ccc;
+    }
+
+    .qty-input {
+      width: 40px;
+      text-align: center;
+      border: none;
+      background: transparent;
+      font-weight: bold;
+      font-size: 16px;
     }
 
     .bundle-sidebar {
@@ -207,6 +246,57 @@
       justify-content: space-between;
       margin-bottom: 10px;
       font-size: 15px;
+    }
+
+    .bundle-items-list {
+      text-align: left;
+      margin-bottom: 20px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .bundle-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+
+    .bundle-item-row:last-child {
+      border-bottom: none;
+    }
+
+    .bundle-item-row__info {
+      flex: 1;
+    }
+
+    .bundle-item-row__title {
+      font-weight: 600;
+      display: block;
+    }
+
+    .bundle-item-row__price {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .bundle-item-row__qty {
+      margin: 0 15px;
+      font-weight: bold;
+      color: {{ block.settings.accent_color }};
+    }
+
+    .bundle-item-row__remove {
+      cursor: pointer;
+      color: #999;
+      font-size: 18px;
+    }
+
+    .bundle-item-row__remove:hover {
+      color: #ff4444;
     }
 
     .checkout-btn {
@@ -358,6 +448,22 @@
       margin: 0 auto 15px;
     }
 
+    .btn-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .checkout-btn .btn-spinner {
+      border-top-color: {{ block.settings.checkout_btn_text_color }};
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -410,6 +516,11 @@
               <p class="price">{{ product.price | money }}</p>
               <button class="details-link" onclick="BundleInstance.openModal('{{ product.url }}')">Product details ↗</button>
               <button class="add-to-bundle-btn" onclick="BundleInstance.toggleFromGrid(this)">Add</button>
+              <div class="bundle-quantity-selector" data-variant-id="{{ variant.id }}">
+                 <button class="qty-btn minus" onclick="BundleInstance.updateQty(this, -1)">-</button>
+                 <input type="text" class="qty-input" value="1" readonly>
+                 <button class="qty-btn plus" onclick="BundleInstance.updateQty(this, 1)">+</button>
+              </div>
             </div>
           </div>
         {% endif %}
@@ -433,6 +544,10 @@
                   <span class="count">{{ discount.count }}{% if forloop.last %}+{% endif %} items</span>
                </div>
              {% endfor %}
+          </div>
+
+          <div class="bundle-items-list">
+             <!-- Dynamically populated -->
           </div>
 
           <p class="bundle-message">Add items and start saving!</p>
@@ -479,6 +594,11 @@
             <div id="modal-product-description" class="bundle-modal__description"></div>
             
             <button class="add-to-bundle-btn modal-add-btn" onclick="BundleInstance.toggleFromModal(this)">Add to Bundle</button>
+            <div id="modal-qty-selector" class="bundle-quantity-selector">
+                <button class="qty-btn minus" onclick="BundleInstance.updateQty(this, -1)">-</button>
+                <input type="text" class="qty-input" value="1" readonly>
+                <button class="qty-btn plus" onclick="BundleInstance.updateQty(this, 1)">+</button>
+            </div>
           </div>
         </div>
       </div>
@@ -486,10 +606,11 @@
   </div>
 
   <script>
-    var BundleInstance = BundleInstance || (function() {
+    (function() {
       const selectedItemsMap = new Map(); // Container element -> selectedItems array
 
       function getContainer(el) {
+        if (!el) return null;
         return el.closest('.bundle-builder');
       }
 
@@ -500,6 +621,65 @@
         return selectedItemsMap.get(container);
       }
 
+      function updateQty(el, delta) {
+        const selector = el.closest('.bundle-quantity-selector');
+        const container = getContainer(el);
+        const variantId = selector.dataset.variantId;
+        const selectedItems = getSelectedItems(container);
+        const item = selectedItems.find(i => String(i.variantId) === String(variantId));
+        
+        if (!item) return;
+        
+        const newQty = Math.max(0, item.quantity + delta);
+        if (newQty === 0) {
+            // Remove item
+            const index = selectedItems.indexOf(item);
+            selectedItems.splice(index, 1);
+        } else {
+            item.quantity = newQty;
+        }
+        
+        syncVariantUI(variantId, container);
+        updateUI(container);
+      }
+
+      function syncVariantUI(variantId, container) {
+        const selectedItems = getSelectedItems(container);
+        const item = selectedItems.find(i => String(i.variantId) === String(variantId));
+        const qty = item ? item.quantity : 0;
+        
+        // Sync grid buttons and selectors
+        document.querySelectorAll(`.bundle-builder .bundle-quantity-selector[data-variant-id="${variantId}"]`).forEach(selector => {
+            const btn = selector.previousElementSibling;
+            if (qty > 0) {
+                selector.classList.add('is-active');
+                selector.querySelector('.qty-input').value = qty;
+                if (btn) btn.classList.add('added');
+            } else {
+                selector.classList.remove('is-active');
+                if (btn) btn.classList.remove('added');
+            }
+        });
+
+        // Sync modal if open and matching variant
+        const modal = document.getElementById('bundle-product-modal');
+        if (modal.classList.contains('is-open')) {
+            const modalAddBtn = modal.querySelector('.modal-add-btn');
+            const modalQtySelector = document.getElementById('modal-qty-selector');
+            if (modalAddBtn.dataset.variantId === String(variantId)) {
+                if (qty > 0) {
+                    modalAddBtn.classList.add('added');
+                    modalQtySelector.classList.add('is-active');
+                    modalQtySelector.dataset.variantId = variantId;
+                    modalQtySelector.querySelector('.qty-input').value = qty;
+                } else {
+                    modalAddBtn.classList.remove('added');
+                    modalQtySelector.classList.remove('is-active');
+                }
+            }
+        }
+      }
+
       function toggle(variantId, price, title, container, buttonToSync = null) {
         if (!variantId) {
           console.error('Bundle Builder: Missing variant ID');
@@ -507,26 +687,17 @@
         }
 
         const selectedItems = getSelectedItems(container);
-        const index = selectedItems.findIndex(item => String(item.variantId) === String(variantId));
+        const item = selectedItems.find(item => String(item.variantId) === String(variantId));
 
-        if (index > -1) {
-          selectedItems.splice(index, 1);
+        if (item) {
+          // If already added, clicking "Add" again doesn't do much with qty selector, 
+          // but for consistency we'll leave it or increment. 
+          // Since "Add" button is hidden when qty selector is shown, this only happens via modal or grid toggle.
         } else {
-          selectedItems.push({ variantId, price, title });
+          selectedItems.push({ variantId, price, title, quantity: 1 });
         }
 
-        // Sync ALL buttons on the page with this variant ID
-        document.querySelectorAll(`.add-to-bundle-btn[data-variant-id="${variantId}"]`).forEach(btn => {
-            const isModal = btn.classList.contains('modal-add-btn');
-            if (index > -1) {
-                btn.innerText = isModal ? 'Add to Bundle' : 'Add';
-                btn.classList.remove('added');
-            } else {
-                btn.innerText = isModal ? 'Added to Bundle' : 'Added';
-                btn.classList.add('added');
-            }
-        });
-
+        syncVariantUI(variantId, container);
         updateUI(container);
       }
 
@@ -542,11 +713,36 @@
 
       function updateUI(container) {
         const selectedItems = getSelectedItems(container);
-        const itemCount = selectedItems.length;
+        const itemCount = selectedItems.reduce((sum, i) => sum + i.quantity, 0);
         const discounts = JSON.parse(container.dataset.discounts || '[]');
         const sortedDiscounts = [...discounts].sort((a, b) => a.count - b.count);
 
-        container.querySelector('.bundle-item-count').innerText = `${itemCount} items`;
+        container.querySelector('.bundle-item-count').innerText = `${itemCount} item${itemCount !== 1 ? 's' : ''}`;
+
+        // Update items list in sidebar
+        const listContainer = container.querySelector('.bundle-items-list');
+        if (listContainer) {
+            listContainer.innerHTML = '';
+            selectedItems.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'bundle-item-row';
+                row.innerHTML = `
+                    <div class="bundle-item-row__info">
+                        <span class="bundle-item-row__title">${item.title}</span>
+                        <span class="bundle-item-row__price">${formatMoney(item.price, container)}</span>
+                    </div>
+                    <span class="bundle-item-row__qty">x${item.quantity}</span>
+                    <span class="bundle-item-row__remove" onclick="BundleInstance.removeItem(this, '${item.variantId}')">&times;</span>
+                `;
+                listContainer.appendChild(row);
+            });
+            
+            // Toggle visibility of empty message
+            const emptyMsg = container.querySelector('.bundle-message');
+            if (emptyMsg) {
+                emptyMsg.style.display = itemCount > 0 ? 'none' : 'block';
+            }
+        }
 
         let currentDiscount = 0;
         sortedDiscounts.forEach(d => {
@@ -579,7 +775,7 @@
 
         const savingsEl = container.querySelector('.bundle-savings');
         if (currentDiscount > 0) {
-          const totalRaw = selectedItems.reduce((sum, item) => sum + item.price, 0);
+          const totalRaw = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
           const savings = (totalRaw * currentDiscount) / 100;
           savingsEl.innerText = formatMoney(savings, container);
         } else {
@@ -604,12 +800,27 @@
         }
       }
 
+      function setLoading(button, isLoading, loadingText = 'Processing...') {
+        if (isLoading) {
+          button.disabled = true;
+          button.dataset.originalHtml = button.innerHTML;
+          button.innerHTML = `<span class="btn-spinner"></span> ${loadingText}`;
+        } else {
+          button.disabled = false;
+          if (button.dataset.originalHtml) {
+            button.innerHTML = button.dataset.originalHtml;
+          }
+        }
+      }
+
       function checkout(button) {
   const container = getContainer(button);
   const selectedItems = getSelectedItems(container);
   if (selectedItems.length === 0) return;
 
-  const itemCount = selectedItems.length;
+  setLoading(button, true, 'Redirecting to checkout...');
+
+  const itemCount = selectedItems.reduce((sum, i) => sum + i.quantity, 0);
   const discounts = JSON.parse(container.dataset.discounts || '[]');
   const prefix = container.dataset.prefix || 'fubndl';
 
@@ -626,7 +837,7 @@
 
   // Build cart items
   const items = selectedItems.reduce((acc, item) => {
-    acc[item.variantId] = (acc[item.variantId] || 0) + 1;
+    acc[item.variantId] = (acc[item.variantId] || 0) + item.quantity;
     return acc;
   }, {});
 
@@ -694,24 +905,6 @@
               addBtn.dataset.variantId = product.variants[0].id;
             }
             
-            function updateModalButtonState(variantId, btn) {
-                // Sync button state with main grid or internal state
-                const mainGridBtn = document.querySelector(`.bundle-product-card[data-variant-id="${variantId}"] .add-to-bundle-btn`);
-                
-                // Note: If variant is not in main grid, we check if it's already in the selected items
-                const container = getContainer(modal);
-                const selectedItems = getSelectedItems(container);
-                const isSelected = selectedItems.some(item => String(item.variantId) === String(variantId));
-
-                if (isSelected) {
-                  btn.innerText = 'Added to Bundle';
-                  btn.classList.add('added');
-                } else {
-                  btn.innerText = 'Add to Bundle';
-                  btn.classList.remove('added');
-                }
-            }
-
             updateModalButtonState(product.variants[0].id, addBtn);
 
             modal.classList.remove('is-loading');
@@ -720,6 +913,12 @@
             console.error('Error fetching product:', error);
             modal.querySelector('.bundle-modal__loader').innerHTML = '<p>Error loading product. Please try again.</p>';
           });
+      }
+
+      function updateModalButtonState(variantId, btn) {
+          const modal = document.getElementById('bundle-product-modal');
+          const container = getContainer(modal);
+          syncVariantUI(variantId, container);
       }
 
       function closeModal() {
@@ -748,7 +947,18 @@
         toggle(variantId, price, title, container, button);
       }
 
-      return { toggle, toggleFromGrid, checkout, openModal, closeModal, toggleFromModal };
+      function removeItem(el, variantId) {
+        const container = getContainer(el);
+        const selectedItems = getSelectedItems(container);
+        const index = selectedItems.findIndex(i => String(i.variantId) === String(variantId));
+        if (index > -1) {
+            selectedItems.splice(index, 1);
+            syncVariantUI(variantId, container);
+            updateUI(container);
+        }
+      }
+
+      window.BundleInstance = { toggle, toggleFromGrid, checkout, openModal, closeModal, toggleFromModal, updateQty, updateModalButtonState, removeItem };
     })();
   </script>
 {% endif %}
