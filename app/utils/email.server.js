@@ -8,9 +8,9 @@ import { SendMailClient } from "zeptomail";
  * CN: https://api.zeptomail.com.cn/
  * AU: https://api.zeptomail.com.au/
  */
-const ZEPTOMAIL_URL = process.env.ZEPTOMAIL_URL || "https://api.zeptomail.com/";
-const ZEPTOMAIL_TOKEN = process.env.ZEPTOMAIL_TOKEN;
-const SENDER_EMAIL = process.env.SENDER_EMAIL || "support@zoww.app";
+const ZEPTOMAIL_URL = process.env.ZEPTOMAIL_URL || "https://api.zeptomail.in/";
+const ZEPTOMAIL_TOKEN = process.env.ZEPTOMAIL_TOKEN || "PHtE6r1bQO3q3m8s8BAA4fW8EJX1Z459+7lleQhPs4tECPUDGk1TrNEsmmflqUgiVfEXQPafytpotbPJ4r7TIWnuYGsaWmqyqK3sx/VYSPOZsbq6x00ZslUedULbV4XvcdVq0CHUuNrcNA==";
+const SENDER_EMAIL = process.env.SENDER_EMAIL || "support@fusioncommerce.online";
 const SENDER_NAME = process.env.SENDER_NAME || "Bundle Builder Support";
 
 export async function sendContactEmails({ customerName, customerEmail, message, shopDomain }) {
