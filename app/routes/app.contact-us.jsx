@@ -54,7 +54,7 @@ export const loader = async ({ request }) => {
     console.error("Failed to fetch store email:", error); 
     return { 
       ownerEmail: null, 
-      errors: [{ message: error.message ?? "Unknown error" }], 
+      errors: [{ message: error?.message || "An error occurred while loading the contact page" }], 
       myshopifyDomain: session?.shop ?? null, 
     }; 
   } 
@@ -99,7 +99,7 @@ export const action = async ({ request }) => {
      
     return { 
         success: false, 
-        message: `Error: ${error.message}`, 
+        message: `Error: ${error.message || "An unexpected error occurred"}`, 
     }; 
   } 
 }; 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, useLoaderData, useRouteError, useLocation } from "react-router";
+import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import enTranslations from "@shopify/polaris/locales/en.json";
@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      <PolarisProvider i18n={enTranslations}>
+      <PolarisProvider i18n={enTranslations} linkComponent={Link}>
         <s-app-nav>
         <s-link href="/app">Bundle Configuration</s-link>
         <s-link href="/app/product-bundle">Product Bundle</s-link>
