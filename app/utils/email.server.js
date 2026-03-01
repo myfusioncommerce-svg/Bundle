@@ -20,6 +20,31 @@ const SENDER_EMAIL = senderAddress;
 const SENDER_NAME = process.env.ZEPTOMAIL_SENDER_NAME || "Bundle Builder Support";
 const ADMIN_EMAIL = process.env.CONTACT_ADMIN_EMAIL || SENDER_EMAIL;
 
+const COMMON_EMAIL_STYLE = `
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #f9fafb; padding: 40px 0; }
+    .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #1a1a1a; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #edf2f7; }
+    .header { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); padding: 50px 30px; text-align: center; color: #ffffff; }
+    .header h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+    .header p { margin: 12px 0 0; font-size: 18px; opacity: 0.9; font-weight: 400; }
+    .content { padding: 45px 40px; line-height: 1.8; font-size: 16px; color: #4a5568; }
+    .content h2 { color: #1a202c; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 20px; letter-spacing: -0.4px; }
+    .features { margin: 30px 0; padding-left: 0; list-style: none; }
+    .features li { margin-bottom: 15px; padding-left: 30px; position: relative; }
+    .features li::before { content: '→'; position: absolute; left: 0; color: #007bff; font-weight: bold; }
+    .tip { background-color: #ebf8ff; border-radius: 8px; padding: 25px; margin: 35px 0; color: #2c5282; border: 1px solid #bee3f8; }
+    .feedback { background-color: #fffaf0; border-radius: 8px; padding: 25px; margin: 35px 0; color: #7b341e; border: 1px solid #feebc8; }
+    .info-box { background-color: #f7fafc; border-radius: 8px; padding: 25px; margin: 30px 0; border: 1px solid #edf2f7; }
+    .info-item { margin-bottom: 12px; display: block; }
+    .info-label { font-weight: 700; color: #2d3748; min-width: 100px; display: inline-block; }
+    .cta { text-align: center; margin: 45px 0; }
+    .button { background-color: #007bff; color: #ffffff !important; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block; font-size: 18px; box-shadow: 0 4px 14px rgba(0,123,255,0.3); }
+    .footer { text-align: center; padding: 35px 20px; font-size: 14px; color: #a0aec0; border-top: 1px solid #f7fafc; background-color: #ffffff; }
+    .footer p { margin: 8px 0; }
+  </style>
+`;
+
 export async function sendContactEmails({ customerName, customerEmail, message, shopDomain }) {
   console.log("--- Email Send Attempt ---");
   console.log("Target URL:", ZEPTOMAIL_URL);
@@ -52,7 +77,8 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
   }
 
   try {
-    const result = await client.sendMail({
+    // 1. Send notification to ADMIN
+    await client.sendMail({
       from: {
         address: SENDER_EMAIL,
         name: SENDER_NAME,
@@ -60,8 +86,8 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
       to: [
         {
           email_address: {
-            address: ADMIN_EMAIL, // Send to admin email from ENV
-            name: SENDER_NAME,
+            address: ADMIN_EMAIL,
+            name: "Admin",
           },
         },
       ],
@@ -71,20 +97,93 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
           name: customerName,
         },
       ],
-      subject: `New Contact Form Submission from ${shopDomain}`,
+      subject: `New Inquiry from ${customerName} | ${shopDomain}`,
       htmlbody: `
-        <div>
-          <h2>New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${customerName}</p>
-          <p><strong>Email:</strong> ${customerEmail}</p>
-          <p><strong>Shop:</strong> ${shopDomain}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, "<br>")}</p>
+        ${COMMON_EMAIL_STYLE}
+        <div class="wrapper">
+          <table class="main">
+            <tr>
+              <td class="header" style="background: #1a202c;">
+                <h1>New Inquiry Received</h1>
+                <p>Support ticket from your app store</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="content">
+                <h2>Message Details</h2>
+                <div class="info-box">
+                  <span class="info-item"><span class="info-label">Customer:</span> ${customerName}</span>
+                  <span class="info-item"><span class="info-label">Email:</span> ${customerEmail}</span>
+                  <span class="info-item"><span class="info-label">Store:</span> ${shopDomain}</span>
+                </div>
+                <div style="background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                  <p style="margin: 0; color: #2d3748; font-style: italic;">"${message.replace(/\n/g, "<br>")}"</p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                <p>Reply directly to this email to contact the merchant.</p>
+              </td>
+            </tr>
+          </table>
         </div>
       `,
     });
 
-    return { success: true, message: "Email sent successfully", result };
+    // 2. Send acknowledgment to CUSTOMER
+    await client.sendMail({
+      from: {
+        address: SENDER_EMAIL,
+        name: SENDER_NAME,
+      },
+      to: [
+        {
+          email_address: {
+            address: customerEmail,
+            name: customerName,
+          },
+        },
+      ],
+      subject: `We've received your message — Fusion Upsell Bundle`,
+      htmlbody: `
+        ${COMMON_EMAIL_STYLE}
+        <div class="wrapper">
+          <table class="main">
+            <tr>
+              <td class="header">
+                <h1>Message Received ✉️</h1>
+                <p>We're on it!</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="content">
+                <h2>Hi ${customerName},</h2>
+                <p>
+                  Thank you for reaching out to **Fusion Upsell Bundle**. This is a quick note to let you know that we've received your message and our team is already reviewing it.
+                </p>
+                <p>
+                  We typically respond within **24 hours** during business days. We appreciate your patience as we look into your inquiry.
+                </p>
+                <div class="tip">
+                  <strong>Did you know?</strong><br>
+                  You can often find quick answers in our <strong>FAQ</strong> section directly within the app dashboard.
+                </div>
+                <p>Talk to you soon!</p>
+                <p><strong>Team Fusion Upsell Bundle</strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                <p>© 2026 Fusion Upsell Bundle. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      `,
+    });
+
+    return { success: true, message: "Email sent successfully" };
   } catch (error) {
     console.error("ZeptoMail Error:", error);
     if (error && typeof error === 'object' && !error.message) {
@@ -119,64 +218,64 @@ export async function sendWelcomeEmail({ shopDomain, email }) {
       ],
       subject: `Welcome to Fusion Upsell Bundle — Start Building High-Converting Bundles Today 🚀`,
       htmlbody: `
-        <style>
-          .header { text-align: center; padding: 20px; background-color: #f8f9fa; }
-          .content { padding: 30px; line-height: 1.6; color: #333; font-family: sans-serif; }
-          .features { margin: 20px 0; padding-left: 20px; }
-          .tip { background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0; }
-          .cta { text-align: center; margin: 30px 0; }
-          .button { background-color: #007bff; color: white !important; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; }
-          .footer { text-align: center; padding: 20px; font-size: 12px; color: #777; border-top: 1px solid #eee; }
-        </style>
-        <div class="header">
-          <h1>Welcome to Fusion Upsell Bundle 🚀</h1>
-          <p>Turn more orders into bigger revenue</p>
-        </div>
+        ${COMMON_EMAIL_STYLE}
+        <div class="wrapper">
+          <table class="main">
+            <tr>
+              <td class="header">
+                <h1>Welcome to Fusion Upsell Bundle 🚀</h1>
+                <p>Turn more orders into bigger revenue</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="content">
+                <h2>You're officially in!</h2>
 
-        <div class="content">
-          <h2>You're officially in!</h2>
+                <p>
+                  Thank you for installing <strong>Fusion Upsell Bundle</strong>.  
+                  You're now equipped with powerful tools to increase your store’s average order value and create smarter product offers that customers love.
+                </p>
 
-          <p>
-            Thank you for installing <strong>Fusion Upsell Bundle</strong>.  
-            You're now equipped with powerful tools to increase your store’s average order value and create smarter product offers that customers love.
-          </p>
+                <p><strong>Here’s what you can start doing right away:</strong></p>
 
-          <p><strong>Here’s what you can start doing right away:</strong></p>
+                <ul class="features">
+                  <li>Create high-converting product bundles in minutes</li>
+                  <li>Offer quantity breaks and tiered discounts</li>
+                  <li>Design custom upsell offers that match your brand</li>
+                  <li>Show bundles directly on product or bundle pages</li>
+                  <li>Encourage customers to buy more with smart incentives</li>
+                </ul>
 
-          <ul class="features">
-            <li>Create high-converting product bundles in minutes</li>
-            <li>Offer quantity breaks and tiered discounts</li>
-            <li>Design custom upsell offers that match your brand</li>
-            <li>Show bundles directly on product or bundle pages</li>
-            <li>Encourage customers to buy more with smart incentives</li>
-          </ul>
+                <div class="tip">
+                  <strong>Quick Start Tip:</strong><br>
+                  Launch a simple “Buy More, Save More” bundle first — it's one of the fastest ways to boost conversions and revenue.
+                </div>
 
-          <div class="tip">
-            <strong>Quick Start Tip:</strong><br>
-            Launch a simple “Buy More, Save More” bundle first — it's one of the fastest ways to boost conversions and revenue.
-          </div>
+                <div class="cta">
+                  <a href="https://apps.shopify.com/bundle-builder-6" class="button">
+                    Open Your App Dashboard
+                  </a>
+                </div>
 
-          <div class="cta">
-            <a href="https://apps.shopify.com/bundle-builder-6" class="button">
-              Open Your App Dashboard
-            </a>
-          </div>
+                <p>
+                  Need help setting things up or want optimization tips?  
+                  Just reply to this email — our team is always happy to help.
+                </p>
 
-          <p>
-            Need help setting things up or want optimization tips?  
-            Just reply to this email — our team is always happy to help.
-          </p>
+                <p>
+                  Let’s grow your store together 💙
+                </p>
 
-          <p>
-            Let’s grow your store together 💙
-          </p>
-
-          <p><strong>Team Fusion Upsell Bundle</strong></p>
-        </div>
-
-        <div class="footer">
-          © 2026 Fusion Upsell Bundle. All rights reserved.<br>
-          You’re receiving this email because you installed Fusion Upsell Bundle on Shopify.
+                <p><strong>Team Fusion Upsell Bundle</strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                <p>© 2026 Fusion Upsell Bundle. All rights reserved.</p>
+                <p>You’re receiving this email because you installed Fusion Upsell Bundle on Shopify.</p>
+              </td>
+            </tr>
+          </table>
         </div>
       `,
     });
@@ -210,49 +309,50 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
       ],
       subject: `Sorry to See You Go — Fusion Upsell Bundle`,
       htmlbody: `
-        <style>
-          .header { text-align: center; padding: 20px; background-color: #f8f9fa; }
-          .content { padding: 30px; line-height: 1.6; color: #333; font-family: sans-serif; }
-          .feedback { background-color: #fcf8e3; border-left: 4px solid #8a6d3b; padding: 15px; margin: 20px 0; color: #8a6d3b; }
-          .cta { text-align: center; margin: 30px 0; }
-          .button { background-color: #007bff; color: white !important; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; }
-          .footer { text-align: center; padding: 20px; font-size: 12px; color: #777; border-top: 1px solid #eee; }
-        </style>
-        <div class="header">
-          <h1>We’re Sorry to See You Go 💙</h1>
-          <p>Thanks for trying Fusion Upsell Bundle</p>
-        </div>
-
-        <div class="content">
-          <p>Hi there,</p>
-          <p>
-            We noticed that you’ve uninstalled <strong>Fusion Upsell Bundle</strong>, and we just wanted to say thank you for giving us a try.  
-            We truly appreciate the opportunity to be part of your store’s growth journey.
-          </p>
-          <p>
-            If something didn’t work the way you expected, we’d really love to learn from your experience so we can improve.
-          </p>
-          <div class="feedback">
-            <strong>Help us improve:</strong><br>
-            What made you decide to uninstall? Your feedback means a lot to us and helps make the app better for everyone.
-          </div>
-          <div class="cta">
-            <a href="https://apps.shopify.com/bundle-builder-6" class="button">
-              Reinstall Fusion Upsell Bundle
-            </a>
-          </div>
-          <p>
-            If you ever decide to come back, we’ll be here to help you boost conversions and grow your revenue.
-          </p>
-          <p>
-            Wishing you continued success with your store 🚀
-          </p>
-          <p><strong>Team Fusion Upsell Bundle</strong></p>
-        </div>
-
-        <div class="footer">
-          © 2026 Fusion Upsell Bundle. All rights reserved.<br>
-          This email was sent following your app uninstall.
+        ${COMMON_EMAIL_STYLE}
+        <div class="wrapper">
+          <table class="main">
+            <tr>
+              <td class="header" style="background-color: #6c757d;">
+                <h1>We’re Sorry to See You Go 💙</h1>
+                <p>Thanks for trying Fusion Upsell Bundle</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="content">
+                <p>Hi there,</p>
+                <p>
+                  We noticed that you’ve uninstalled <strong>Fusion Upsell Bundle</strong>, and we just wanted to say thank you for giving us a try.  
+                  We truly appreciate the opportunity to be part of your store’s growth journey.
+                </p>
+                <p>
+                  If something didn’t work the way you expected, we’d really love to learn from your experience so we can improve.
+                </p>
+                <div class="feedback">
+                  <strong>Help us improve:</strong><br>
+                  What made you decide to uninstall? Your feedback means a lot to us and helps make the app better for everyone.
+                </div>
+                <div class="cta">
+                  <a href="https://apps.shopify.com/bundle-builder-6" class="button" style="background-color: #6c757d;">
+                    Reinstall Fusion Upsell Bundle
+                  </a>
+                </div>
+                <p>
+                  If you ever decide to come back, we’ll be here to help you boost conversions and grow your revenue.
+                </p>
+                <p>
+                  Wishing you continued success with your store 🚀
+                </p>
+                <p><strong>Team Fusion Upsell Bundle</strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                <p>© 2026 Fusion Upsell Bundle. All rights reserved.</p>
+                <p>This email was sent following your app uninstall.</p>
+              </td>
+            </tr>
+          </table>
         </div>
       `,
     });
@@ -286,24 +386,32 @@ export async function sendAdminUninstallNotification({ shopDomain, email, phone 
       ],
       subject: `🚨 Alert: App Uninstalled by ${shopDomain}`,
       htmlbody: `
-        <div style="font-family: sans-serif; padding: 20px;">
-          <h1 style="color: #d9534f;">App Uninstalled</h1>
-          <p>The following store has uninstalled <strong>Fusion Upsell Bundle</strong>:</p>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        ${COMMON_EMAIL_STYLE}
+        <div class="wrapper">
+          <table class="main">
             <tr>
-              <td style="padding: 10px; border: 1px solid #eee; font-weight: bold; width: 30%;">Shop Domain:</td>
-              <td style="padding: 10px; border: 1px solid #eee;">${shopDomain}</td>
+              <td class="header" style="background: #e53e3e;">
+                <h1>App Uninstalled</h1>
+                <p>Activity Alert</p>
+              </td>
             </tr>
             <tr>
-              <td style="padding: 10px; border: 1px solid #eee; font-weight: bold;">Contact Email:</td>
-              <td style="padding: 10px; border: 1px solid #eee;">${email || "Not available"}</td>
+              <td class="content">
+                <p>The following store has uninstalled <strong>Fusion Upsell Bundle</strong>:</p>
+                <div class="info-box">
+                  <span class="info-item"><span class="info-label">Shop Domain:</span> ${shopDomain}</span>
+                  <span class="info-item"><span class="info-label">Contact Email:</span> ${email || "Not available"}</span>
+                  <span class="info-item"><span class="info-label">Phone:</span> ${phone || "Not available"}</span>
+                </div>
+                <p style="margin-top: 25px;">Consider reaching out to the merchant to understand their experience and see if they'd like to share any feedback.</p>
+              </td>
             </tr>
             <tr>
-              <td style="padding: 10px; border: 1px solid #eee; font-weight: bold;">Phone Number:</td>
-              <td style="padding: 10px; border: 1px solid #eee;">${phone || "Not available"}</td>
+              <td class="footer">
+                <p>Admin Notification | Fusion Upsell Bundle</p>
+              </td>
             </tr>
           </table>
-          <p style="margin-top: 20px;">You might want to reach out and ask for feedback!</p>
         </div>
       `,
     });

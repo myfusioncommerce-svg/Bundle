@@ -7,23 +7,20 @@ export const action = async ({ request }) => {
 
   console.log(`Received ${topic} webhook for ${shop}`);
 
-  try {
-    // Fetch shop details to get the contact email and phone before the session is fully gone
-    const response = await admin.graphql(`
-      #graphql
-      query getShopDetails {
-        shop {
-          email
-          contactEmail
-          phone
-        }
-      }
-    `);
-    const payload = await response.json();
-    const shopData = payload?.data?.shop;
-    const shopEmail = shopData?.contactEmail || shopData?.email;
-    const shopPhone = shopData?.phone;
+  // Fetch shop email from the database before the session is deleted
+  // We cannot use GraphQL because the token is revoked during uninstallation
+  let shopEmail = session?.email;
+  
+  if (!shopEmail && session) {
+      // Fallback: try to find any existing session for this shop with an email
+      const lastSession = await db.session.findFirst({
+          where: { shop, email: { not: null } },
+          orderBy: { expires: 'desc' }
+      });
+      shopEmail = lastSession?.email;
+  }
 
+  try {
     // Trigger goodbye notification to the merchant
     await sendGoodbyeEmail({ 
       shopDomain: shop,
@@ -34,12 +31,10 @@ export const action = async ({ request }) => {
     await sendAdminUninstallNotification({
       shopDomain: shop,
       email: shopEmail,
-      phone: shopPhone
+      // We don't have phone in the DB, so it will be null, which is fine
     });
   } catch (error) {
-    console.error("Error fetching shop details for uninstall notifications:", error);
-    // Fallback to sending basic notification to admin if shop details fail
-    await sendAdminUninstallNotification({ shopDomain: shop });
+    console.error("Error sending uninstall notifications:", error);
   }
 
   // Webhook requests can trigger multiple times and after an app has already been uninstalled.

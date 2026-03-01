@@ -5,7 +5,7 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import prisma from "./db.server";
+import db from "./db.server";
 import { sendWelcomeEmail } from "./utils/email.server";
 
 const shopify = shopifyApp({
@@ -35,6 +35,12 @@ const shopify = shopifyApp({
         const payload = await response.json();
         const shopEmail = payload?.data?.shop?.contactEmail || payload?.data?.shop?.email;
         
+        // Save the shop email to the session for later use (like uninstallation)
+        await db.session.update({
+          where: { id: session.id },
+          data: { email: shopEmail }
+        });
+
         await sendWelcomeEmail({
           shopDomain: session.shop,
           email: shopEmail
