@@ -8,29 +8,34 @@ export const action = async ({ request }) => {
   console.log(`Received ${topic} webhook for ${shop}`);
 
   // Fetch shop email from the database directly by shop name
-  // The session object from authenticate.webhook might not have our custom 'email' field
   const storedSession = await db.session.findFirst({
     where: { shop, email: { not: null } },
     orderBy: { id: 'desc' }
   });
   
   const shopEmail = storedSession?.email;
+  console.log(`UNINSTALL LOG: Found stored email for ${shop}: ${shopEmail || 'NONE'}`);
 
   try {
     // Trigger goodbye notification to the merchant
-    await sendGoodbyeEmail({ 
-      shopDomain: shop,
-      email: shopEmail
-    });
+    if (shopEmail) {
+      console.log(`UNINSTALL LOG: Attempting to send goodbye email to ${shopEmail}`);
+      await sendGoodbyeEmail({ 
+        shopDomain: shop,
+        email: shopEmail
+      });
+    } else {
+      console.log(`UNINSTALL LOG: Skipping goodbye email - NO EMAIL in DB for ${shop}`);
+    }
 
     // Trigger alert to admin with merchant details
+    console.log(`UNINSTALL LOG: Sending admin alert for ${shop}`);
     await sendAdminUninstallNotification({
       shopDomain: shop,
       email: shopEmail,
-      // We don't have phone in the DB, so it will be null, which is fine
     });
   } catch (error) {
-    console.error("Error sending uninstall notifications:", error);
+    console.error("UNINSTALL ERROR: notification failure:", error);
   }
 
   // Webhook requests can trigger multiple times and after an app has already been uninstalled.

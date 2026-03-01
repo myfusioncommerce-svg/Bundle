@@ -22,25 +22,25 @@ const ADMIN_EMAIL = process.env.CONTACT_ADMIN_EMAIL || SENDER_EMAIL;
 
 const COMMON_EMAIL_STYLE = `
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-    .wrapper { width: 100%; table-layout: fixed; background-color: #f9fafb; padding: 40px 0; }
-    .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #1a1a1a; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #edf2f7; }
-    .header { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); padding: 50px 30px; text-align: center; color: #ffffff; }
-    .header h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
-    .header p { margin: 12px 0 0; font-size: 18px; opacity: 0.9; font-weight: 400; }
-    .content { padding: 45px 40px; line-height: 1.8; font-size: 16px; color: #4a5568; }
-    .content h2 { color: #1a202c; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 20px; letter-spacing: -0.4px; }
-    .features { margin: 30px 0; padding-left: 0; list-style: none; }
-    .features li { margin-bottom: 15px; padding-left: 30px; position: relative; }
-    .features li::before { content: '→'; position: absolute; left: 0; color: #007bff; font-weight: bold; }
-    .tip { background-color: #ebf8ff; border-radius: 8px; padding: 25px; margin: 35px 0; color: #2c5282; border: 1px solid #bee3f8; }
-    .feedback { background-color: #fffaf0; border-radius: 8px; padding: 25px; margin: 35px 0; color: #7b341e; border: 1px solid #feebc8; }
-    .info-box { background-color: #f7fafc; border-radius: 8px; padding: 25px; margin: 30px 0; border: 1px solid #edf2f7; }
-    .info-item { margin-bottom: 12px; display: block; }
-    .info-label { font-weight: 700; color: #2d3748; min-width: 100px; display: inline-block; }
-    .cta { text-align: center; margin: 45px 0; }
-    .button { background-color: #007bff; color: #ffffff !important; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block; font-size: 18px; box-shadow: 0 4px 14px rgba(0,123,255,0.3); }
-    .footer { text-align: center; padding: 35px 20px; font-size: 14px; color: #a0aec0; border-top: 1px solid #f7fafc; background-color: #ffffff; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    .wrapper { width: 100%; table-layout: fixed; background-image: linear-gradient(180deg, #e2e8f0 0%, #f0f2f5 100%); padding: 60px 0; }
+    .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #1a202c; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+    .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 60px 40px; text-align: center; color: #ffffff; position: relative; }
+    .header h1 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.025em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header p { margin: 16px 0 0; font-size: 18px; opacity: 0.95; font-weight: 500; }
+    .content { padding: 50px 50px; line-height: 1.8; font-size: 16px; color: #4a5568; background-color: #ffffff; }
+    .content h2 { color: #111827; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 24px; letter-spacing: -0.025em; }
+    .features { margin: 32px 0; padding-left: 0; list-style: none; }
+    .features li { margin-bottom: 16px; padding-left: 32px; position: relative; }
+    .features li::before { content: '✓'; position: absolute; left: 0; top: 2px; width: 20px; height: 20px; background-color: #e0e7ff; color: #4f46e5; border-radius: 50%; text-align: center; line-height: 20px; font-size: 12px; font-weight: bold; }
+    .tip { background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 24px; margin: 40px 0; color: #0369a1; border: 1px solid #bae6fd; }
+    .feedback { background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 100%); border-radius: 12px; padding: 24px; margin: 40px 0; color: #9a3412; border: 1px solid #fed7aa; }
+    .info-box { background-color: #f8fafc; border-radius: 12px; padding: 30px; margin: 32px 0; border: 1px solid #e2e8f0; }
+    .info-item { margin-bottom: 14px; display: block; font-size: 15px; }
+    .info-label { font-weight: 600; color: #64748b; width: 120px; display: inline-block; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .cta { text-align: center; margin: 50px 0; }
+    .button { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: #ffffff !important; padding: 20px 45px; text-decoration: none; border-radius: 12px; font-weight: 700; display: inline-block; font-size: 18px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4); }
+    .footer { text-align: center; padding: 40px 20px; font-size: 14px; color: #94a3b8; background-color: #f8fafc; border-top: 1px solid #f1f5f9; }
     .footer p { margin: 8px 0; }
   </style>
 `;
@@ -103,27 +103,28 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
         <div class="wrapper">
           <table class="main">
             <tr>
-              <td class="header" style="background: #1a202c;">
+              <td class="header" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                 <h1>New Inquiry Received</h1>
-                <p>Support ticket from your app store</p>
+                <p>Merchant Support Request</p>
               </td>
             </tr>
             <tr>
               <td class="content">
                 <h2>Message Details</h2>
                 <div class="info-box">
-                  <span class="info-item"><span class="info-label">Customer:</span> ${customerName}</span>
-                  <span class="info-item"><span class="info-label">Email:</span> ${customerEmail}</span>
-                  <span class="info-item"><span class="info-label">Store:</span> ${shopDomain}</span>
+                  <span class="info-item"><span class="info-label">Customer:</span> <strong style="color: #111827;">${customerName}</strong></span>
+                  <span class="info-item"><span class="info-label">Email:</span> <strong style="color: #111827;">${customerEmail}</strong></span>
+                  <span class="info-item"><span class="info-label">Store:</span> <strong style="color: #111827;">${shopDomain}</strong></span>
                 </div>
-                <div style="background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 20px;">
-                  <p style="margin: 0; color: #2d3748; font-style: italic;">"${message.replace(/\n/g, "<br>")}"</p>
+                <div style="background-color: #ffffff; border: 1px solid #e2e8f0; padding: 30px; border-radius: 12px; margin-top: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                  <p style="margin: 0; color: #1e293b; font-style: italic; font-size: 17px; line-height: 1.8;">"${message.replace(/\n/g, "<br>")}"</p>
                 </div>
               </td>
             </tr>
             <tr>
               <td class="footer">
-                <p>Reply directly to this email to contact the merchant.</p>
+                <p>Action Required: Please respond to the merchant promptly.</p>
+                <p>Fusion Upsell Bundle | Admin Dashboard</p>
               </td>
             </tr>
           </table>
@@ -318,9 +319,9 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
         <div class="wrapper">
           <table class="main">
             <tr>
-              <td class="header" style="background-color: #6c757d;">
+              <td class="header" style="background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);">
                 <h1>We’re Sorry to See You Go 💙</h1>
-                <p>Thanks for trying Fusion Upsell Bundle</p>
+                <p>Thank you for giving us a try</p>
               </td>
             </tr>
             <tr>
@@ -328,22 +329,22 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
                 <p>Hi there,</p>
                 <p>
                   We noticed that you’ve uninstalled <strong>Fusion Upsell Bundle</strong>, and we just wanted to say thank you for giving us a try.  
-                  We truly appreciate the opportunity to be part of your store’s growth journey.
+                  We truly appreciate the opportunity to have been part of your store’s journey.
                 </p>
                 <p>
-                  If something didn’t work the way you expected, we’d really love to learn from your experience so we can improve.
+                  If something didn’t work the way you expected, we’d really love to learn from your experience so we can improve for other merchants.
                 </p>
                 <div class="feedback">
                   <strong>Help us improve:</strong><br>
-                  What made you decide to uninstall? Your feedback means a lot to us and helps make the app better for everyone.
+                  What made you decide to uninstall? Your feedback helps us build a better tool for the Shopify community.
                 </div>
                 <div class="cta">
-                  <a href="https://apps.shopify.com/bundle-builder-6" class="button" style="background-color: #6c757d;">
+                  <a href="https://apps.shopify.com/bundle-builder-6" class="button" style="background: linear-gradient(135deg, #4b5563 0%, #374151 100%); box-shadow: 0 10px 15px -3px rgba(75, 85, 99, 0.4);">
                     Reinstall Fusion Upsell Bundle
                   </a>
                 </div>
                 <p>
-                  If you ever decide to come back, we’ll be here to help you boost conversions and grow your revenue.
+                  If you ever decide to come back, we’ll be here ready to help you boost conversions and grow your revenue.
                 </p>
                 <p>
                   Wishing you continued success with your store 🚀
@@ -354,7 +355,7 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
             <tr>
               <td class="footer">
                 <p>© 2026 Fusion Upsell Bundle. All rights reserved.</p>
-                <p>This email was sent following your app uninstall.</p>
+                <p>This email was sent following your app uninstallation.</p>
               </td>
             </tr>
           </table>
@@ -395,25 +396,26 @@ export async function sendAdminUninstallNotification({ shopDomain, email, phone 
         <div class="wrapper">
           <table class="main">
             <tr>
-              <td class="header" style="background: #e53e3e;">
+              <td class="header" style="background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);">
                 <h1>App Uninstalled</h1>
-                <p>Activity Alert</p>
+                <p>Merchant Activity Alert</p>
               </td>
             </tr>
             <tr>
               <td class="content">
                 <p>The following store has uninstalled <strong>Fusion Upsell Bundle</strong>:</p>
                 <div class="info-box">
-                  <span class="info-item"><span class="info-label">Shop Domain:</span> ${shopDomain}</span>
-                  <span class="info-item"><span class="info-label">Contact Email:</span> ${email || "Not available"}</span>
-                  <span class="info-item"><span class="info-label">Phone:</span> ${phone || "Not available"}</span>
+                  <span class="info-item"><span class="info-label">Shop Domain:</span> <strong style="color: #111827;">${shopDomain}</strong></span>
+                  <span class="info-item"><span class="info-label">Contact Email:</span> <strong style="color: #111827;">${email || "Not available"}</strong></span>
+                  <span class="info-item"><span class="info-label">Phone:</span> <strong style="color: #111827;">${phone || "Not available"}</strong></span>
                 </div>
-                <p style="margin-top: 25px;">Consider reaching out to the merchant to understand their experience and see if they'd like to share any feedback.</p>
+                <p style="margin-top: 25px; color: #4b5563;">Consider reaching out to the merchant to understand their experience and see if they'd like to share any feedback.</p>
               </td>
             </tr>
             <tr>
               <td class="footer">
                 <p>Admin Notification | Fusion Upsell Bundle</p>
+                <p>Generated automatically by your Shopify App</p>
               </td>
             </tr>
           </table>
