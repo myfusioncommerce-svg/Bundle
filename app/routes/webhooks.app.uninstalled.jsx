@@ -1,10 +1,14 @@
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { sendGoodbyeEmail } from "../utils/email.server";
 
 export const action = async ({ request }) => {
   const { shop, session, topic } = await authenticate.webhook(request);
 
   console.log(`Received ${topic} webhook for ${shop}`);
+
+  // Trigger goodbye notification to admin
+  await sendGoodbyeEmail({ shopDomain: shop });
 
   // Webhook requests can trigger multiple times and after an app has already been uninstalled.
   // If this webhook already ran, the session may have been deleted previously.

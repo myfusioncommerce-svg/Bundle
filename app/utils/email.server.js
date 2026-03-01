@@ -94,3 +94,81 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
     throw error;
   }
 }
+
+export async function sendWelcomeEmail({ shopDomain, email }) {
+  if (!ZEPTOMAIL_TOKEN) return;
+
+  const client = new SendMailClient({
+    url: ZEPTOMAIL_URL,
+    token: ZEPTOMAIL_TOKEN,
+  });
+
+  try {
+    await client.sendMail({
+      from: {
+        address: SENDER_EMAIL,
+        name: SENDER_NAME,
+      },
+      to: [
+        {
+          email_address: {
+            address: email || ADMIN_EMAIL,
+            name: shopDomain,
+          },
+        },
+      ],
+      subject: `Welcome to ${SENDER_NAME}!`,
+      htmlbody: `
+        <div>
+          <h1>Welcome to ${SENDER_NAME}!</h1>
+          <p>Hi ${shopDomain},</p>
+          <p>Thank you for installing our app! We're excited to help you boost your sales with our bundle builder.</p>
+          <p>If you have any questions, feel free to reach out to us at ${SENDER_EMAIL}.</p>
+          <br />
+          <p>Best regards,</p>
+          <p>The ${SENDER_NAME} Team</p>
+        </div>
+      `,
+    });
+    console.log(`Welcome email sent to ${shopDomain}`);
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+  }
+}
+
+export async function sendGoodbyeEmail({ shopDomain }) {
+  if (!ZEPTOMAIL_TOKEN) return;
+
+  const client = new SendMailClient({
+    url: ZEPTOMAIL_URL,
+    token: ZEPTOMAIL_TOKEN,
+  });
+
+  try {
+    await client.sendMail({
+      from: {
+        address: SENDER_EMAIL,
+        name: SENDER_NAME,
+      },
+      to: [
+        {
+          email_address: {
+            address: ADMIN_EMAIL,
+            name: SENDER_NAME,
+          },
+        },
+      ],
+      subject: `App Uninstalled: ${shopDomain}`,
+      htmlbody: `
+        <div>
+          <h1>App Uninstalled</h1>
+          <p>The shop <strong>${shopDomain}</strong> has just uninstalled ${SENDER_NAME}.</p>
+          <p>Time to reach out and see if we can help them back!</p>
+        </div>
+      `,
+    });
+    console.log(`Goodbye notification sent for ${shopDomain}`);
+  } catch (error) {
+    console.error("Error sending goodbye email:", error);
+  }
+}

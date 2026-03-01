@@ -6,6 +6,7 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import { sendWelcomeEmail } from "./utils/email.server";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -16,6 +17,33 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
+  hooks: {
+    afterAuth: async ({ session, admin }) => {
+      shopify.registerWebhooks({ session });
+
+      try {
+        // Fetch shop details to get the contact email
+        const response = await admin.graphql(`
+          #graphql
+          query getShopDetails {
+            shop {
+              email
+              contactEmail
+            }
+          }
+        `);
+        const payload = await response.json();
+        const shopEmail = payload?.data?.shop?.contactEmail || payload?.data?.shop?.email;
+        
+        await sendWelcomeEmail({
+          shopDomain: session.shop,
+          email: shopEmail
+        });
+      } catch (error) {
+        console.error("Error in afterAuth hook:", error);
+      }
+    },
+  },
   future: {
     expiringOfflineAccessTokens: true,
   },
