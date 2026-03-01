@@ -8,15 +8,9 @@ import { SendMailClient } from "zeptomail";
  * CN: https://api.zeptomail.com.cn/
  * AU: https://api.zeptomail.com.au/
  */
-const ZEPTOMAIL_URL = process.env.ZEPTOMAIL_URL || "https://api.zeptomail.in/";
-let rawToken = process.env.ZEPTOMAIL_TOKEN ? process.env.ZEPTOMAIL_TOKEN.trim() : null;
-
-// Handle the Zoho-enczapikey prefix if present
-let tokenToUse = rawToken;
-if (tokenToUse && tokenToUse.startsWith("Zoho-enczapikey ")) {
-  tokenToUse = tokenToUse.replace("Zoho-enczapikey ", "");
-}
-const ZEPTOMAIL_TOKEN = tokenToUse;
+// Using the exact format from ZeptoMail documentation
+const ZEPTOMAIL_URL = process.env.ZEPTOMAIL_URL || "https://api.zeptomail.in/v1.1/email";
+const ZEPTOMAIL_TOKEN = process.env.ZEPTOMAIL_TOKEN ? process.env.ZEPTOMAIL_TOKEN.trim() : null;
 
 let senderAddress = process.env.ZEPTOMAIL_SENDER_EMAIL || "support@fusioncommerce.online";
 if (senderAddress && !senderAddress.includes("@")) {
@@ -33,7 +27,7 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
   console.log("Admin Email (Recipient):", ADMIN_EMAIL);
   
   if (ZEPTOMAIL_TOKEN) {
-    const start = ZEPTOMAIL_TOKEN.substring(0, 8);
+    const start = ZEPTOMAIL_TOKEN.substring(0, 20);
     const end = ZEPTOMAIL_TOKEN.substring(ZEPTOMAIL_TOKEN.length - 8);
     console.log(`Token Verification: ${start}...${end} (Length: ${ZEPTOMAIL_TOKEN.length})`);
   } else {
@@ -47,6 +41,7 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
 
   let client;
   try {
+    // The SDK expects the URL and Token as defined in your dashboard
     client = new SendMailClient({
       url: ZEPTOMAIL_URL,
       token: ZEPTOMAIL_TOKEN,
