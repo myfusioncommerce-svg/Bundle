@@ -61,6 +61,8 @@ export const loader = async ({ request }) => {
 }; 
  
 export const action = async ({ request }) => { 
+  const { admin } = await authenticate.admin(request);
+
   if (request.method !== "POST") { 
     return { success: false, message: "Method not allowed" }; 
   } 
@@ -97,9 +99,22 @@ export const action = async ({ request }) => {
   } catch (error) { 
     console.error("ACTION ERROR - Error sending contact emails:", error); 
      
+    let errorMessage = "An unexpected error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else {
+      try {
+        errorMessage = JSON.stringify(error);
+      } catch (e) {
+        errorMessage = "An unserializable error occurred";
+      }
+    }
+
     return { 
         success: false, 
-        message: `Error: ${error.message || "An unexpected error occurred"}`, 
+        message: `Error: ${errorMessage}`, 
     }; 
   } 
 }; 
