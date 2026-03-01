@@ -9,15 +9,36 @@ import { SendMailClient } from "zeptomail";
  * AU: https://api.zeptomail.com.au/
  */
 const ZEPTOMAIL_URL = process.env.ZEPTOMAIL_URL || "https://api.zeptomail.in/";
-const ZEPTOMAIL_TOKEN = process.env.ZEPTOMAIL_TOKEN ? process.env.ZEPTOMAIL_TOKEN.trim() : null;
-const SENDER_EMAIL = process.env.ZEPTOMAIL_SENDER_EMAIL || "support@fusioncommerce.online";
+let rawToken = process.env.ZEPTOMAIL_TOKEN ? process.env.ZEPTOMAIL_TOKEN.trim() : null;
+
+// Handle the Zoho-enczapikey prefix if present
+let tokenToUse = rawToken;
+if (tokenToUse && tokenToUse.startsWith("Zoho-enczapikey ")) {
+  tokenToUse = tokenToUse.replace("Zoho-enczapikey ", "");
+}
+const ZEPTOMAIL_TOKEN = tokenToUse;
+
+let senderAddress = process.env.ZEPTOMAIL_SENDER_EMAIL || "support@fusioncommerce.online";
+if (senderAddress && !senderAddress.includes("@")) {
+  senderAddress = `noreply@${senderAddress}`;
+}
+const SENDER_EMAIL = senderAddress;
 const SENDER_NAME = process.env.ZEPTOMAIL_SENDER_NAME || "Bundle Builder Support";
 const ADMIN_EMAIL = process.env.CONTACT_ADMIN_EMAIL || SENDER_EMAIL;
 
 export async function sendContactEmails({ customerName, customerEmail, message, shopDomain }) {
-  console.log("Email server: sendContactEmails started");
-  console.log("ZEPTOMAIL_URL:", ZEPTOMAIL_URL);
-  console.log("ZEPTOMAIL_TOKEN presence:", ZEPTOMAIL_TOKEN ? `Yes (starts with ${ZEPTOMAIL_TOKEN.substring(0, 10)}...)` : "No");
+  console.log("--- Email Send Attempt ---");
+  console.log("Target URL:", ZEPTOMAIL_URL);
+  console.log("Sender Email:", SENDER_EMAIL);
+  console.log("Admin Email (Recipient):", ADMIN_EMAIL);
+  
+  if (ZEPTOMAIL_TOKEN) {
+    const start = ZEPTOMAIL_TOKEN.substring(0, 8);
+    const end = ZEPTOMAIL_TOKEN.substring(ZEPTOMAIL_TOKEN.length - 8);
+    console.log(`Token Verification: ${start}...${end} (Length: ${ZEPTOMAIL_TOKEN.length})`);
+  } else {
+    console.log("Token Verification: MISSING");
+  }
 
   if (!ZEPTOMAIL_TOKEN) {
     console.error("ZEPTOMAIL_TOKEN is not set in environment variables");
