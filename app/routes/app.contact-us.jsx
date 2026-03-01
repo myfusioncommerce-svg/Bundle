@@ -112,6 +112,11 @@ export const action = async ({ request }) => {
       }
     }
 
+    // Special handling for ZeptoMail TM_4001 Invalid API Token
+    if (errorMessage.includes("TM_4001") || errorMessage.includes("SERR_157")) {
+        errorMessage = "Invalid ZeptoMail Token. Please verify ZEPTOMAIL_TOKEN in your .env file and ensure it matches the region in ZEPTOMAIL_URL.";
+    }
+
     return { 
         success: false, 
         message: `Error: ${errorMessage}`, 

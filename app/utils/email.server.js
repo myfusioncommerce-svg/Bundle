@@ -9,11 +9,16 @@ import { SendMailClient } from "zeptomail";
  * AU: https://api.zeptomail.com.au/
  */
 const ZEPTOMAIL_URL = process.env.ZEPTOMAIL_URL || "https://api.zeptomail.in/";
-const ZEPTOMAIL_TOKEN = process.env.ZEPTOMAIL_TOKEN;
-const SENDER_EMAIL = process.env.SENDER_EMAIL || "support@fusioncommerce.online";
-const SENDER_NAME = process.env.SENDER_NAME || "Bundle Builder Support";
+const ZEPTOMAIL_TOKEN = process.env.ZEPTOMAIL_TOKEN ? process.env.ZEPTOMAIL_TOKEN.trim() : null;
+const SENDER_EMAIL = process.env.ZEPTOMAIL_SENDER_EMAIL || "support@fusioncommerce.online";
+const SENDER_NAME = process.env.ZEPTOMAIL_SENDER_NAME || "Bundle Builder Support";
+const ADMIN_EMAIL = process.env.CONTACT_ADMIN_EMAIL || SENDER_EMAIL;
 
 export async function sendContactEmails({ customerName, customerEmail, message, shopDomain }) {
+  console.log("Email server: sendContactEmails started");
+  console.log("ZEPTOMAIL_URL:", ZEPTOMAIL_URL);
+  console.log("ZEPTOMAIL_TOKEN presence:", ZEPTOMAIL_TOKEN ? `Yes (starts with ${ZEPTOMAIL_TOKEN.substring(0, 10)}...)` : "No");
+
   if (!ZEPTOMAIL_TOKEN) {
     console.error("ZEPTOMAIL_TOKEN is not set in environment variables");
     throw new Error("Email service is not configured.");
@@ -39,7 +44,7 @@ export async function sendContactEmails({ customerName, customerEmail, message, 
       to: [
         {
           email_address: {
-            address: SENDER_EMAIL, // Send to support
+            address: ADMIN_EMAIL, // Send to admin email from ENV
             name: SENDER_NAME,
           },
         },
