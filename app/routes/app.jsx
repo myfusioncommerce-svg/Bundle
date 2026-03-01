@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Outlet, useLoaderData, useRouteError, useLocation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { AppProvider as PolarisProvider } from "@shopify/polaris";
+import enTranslations from "@shopify/polaris/locales/en.json";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
 
@@ -32,7 +34,8 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      <s-app-nav>
+      <PolarisProvider i18n={enTranslations}>
+        <s-app-nav>
         <s-link href="/app">Bundle Configuration</s-link>
         <s-link href="/app/product-bundle">Product Bundle</s-link>
         <s-link href="/app/volume-discount">Volume Discount</s-link>
@@ -72,6 +75,7 @@ export default function App() {
       <div style={{ padding: '20px' }}>
         <Outlet context={{ setSaveAction, setIsSaving }} />
       </div>
+      </PolarisProvider>
     </AppProvider>
   );
 }
