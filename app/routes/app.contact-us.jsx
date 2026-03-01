@@ -15,7 +15,7 @@ import {
 import { TitleBar } from "@shopify/app-bridge-react"; 
 import { EmailIcon } from "@shopify/polaris-icons"; 
 import { useEffect, useState } from "react"; 
-import { useLoaderData, useActionData, useNavigation, Form } from "@react-router/react"; 
+import { useLoaderData, useActionData, useNavigation, Form } from "react-router"; 
 import { authenticate } from "../shopify.server"; 
 import { sendContactEmails } from "../utils/email.server"; 
 
