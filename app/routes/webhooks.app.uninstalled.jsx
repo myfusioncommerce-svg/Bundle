@@ -7,18 +7,14 @@ export const action = async ({ request }) => {
 
   console.log(`Received ${topic} webhook for ${shop}`);
 
-  // Fetch shop email from the database before the session is deleted
-  // We cannot use GraphQL because the token is revoked during uninstallation
-  let shopEmail = session?.email;
+  // Fetch shop email from the database directly by shop name
+  // The session object from authenticate.webhook might not have our custom 'email' field
+  const storedSession = await db.session.findFirst({
+    where: { shop, email: { not: null } },
+    orderBy: { id: 'desc' }
+  });
   
-  if (!shopEmail && session) {
-      // Fallback: try to find any existing session for this shop with an email
-      const lastSession = await db.session.findFirst({
-          where: { shop, email: { not: null } },
-          orderBy: { expires: 'desc' }
-      });
-      shopEmail = lastSession?.email;
-  }
+  const shopEmail = storedSession?.email;
 
   try {
     // Trigger goodbye notification to the merchant

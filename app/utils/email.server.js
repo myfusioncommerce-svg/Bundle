@@ -294,6 +294,11 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
   });
 
   try {
+    if (!email) {
+      console.log(`Skipping goodbye email for ${shopDomain} - no email address available.`);
+      return;
+    }
+
     await client.sendMail({
       from: {
         address: SENDER_EMAIL,
@@ -302,7 +307,7 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
       to: [
         {
           email_address: {
-            address: email || ADMIN_EMAIL,
+            address: email,
             name: shopDomain,
           },
         },
