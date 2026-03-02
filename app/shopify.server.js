@@ -3,13 +3,10 @@ import {
   ApiVersion,
   AppDistribution,
   shopifyApp,
-  BillingInterval,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import db from "./db.server";
 import { sendWelcomeEmail } from "./utils/email.server";
-
-export const MONTHLY_PLAN = 'Monthly Plan';
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -20,13 +17,6 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(db),
   distribution: AppDistribution.AppStore,
-  billing: {
-    [MONTHLY_PLAN]: {
-      amount: 9.99,
-      currencyCode: 'USD',
-      interval: BillingInterval.Every30Days,
-    },
-  },
   hooks: {
     afterAuth: async ({ session, admin }) => {
       shopify.registerWebhooks({ session });
@@ -51,10 +41,26 @@ const shopify = shopifyApp({
           data: { email: shopEmail }
         });
 
-        await sendWelcomeEmail({
-          shopDomain: session.shop,
-          email: shopEmail
+        // Check if welcome email was already sent for this shop
+        const welcomeEmailAlreadySent = await db.session.findFirst({
+          where: { 
+            shop: session.shop,
+            welcomeEmailSent: true
+          }
         });
+
+        if (!welcomeEmailAlreadySent) {
+          await sendWelcomeEmail({
+            shopDomain: session.shop,
+            email: shopEmail
+          });
+
+          // Mark this session (and thus this shop) as having received the welcome email
+          await db.session.update({
+            where: { id: session.id },
+            data: { welcomeEmailSent: true }
+          });
+        }
       } catch (error) {
         console.error("Error in afterAuth hook:", error);
       }

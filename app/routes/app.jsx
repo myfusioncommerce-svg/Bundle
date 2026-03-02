@@ -1,49 +1,16 @@
 import { useState } from "react";
-import { Outlet, useLoaderData, useRouteError, useLocation, Link, redirect } from "react-router";
+import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import enTranslations from "@shopify/polaris/locales/en.json";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { authenticate, MONTHLY_PLAN } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  try {
-    const { session, billing } = await authenticate.admin(request);
-    const url = new URL(request.url);
+  await authenticate.admin(request);
 
-    // Check if shop has an active plan
-    const billingCheck = await billing.check({
-      plans: [MONTHLY_PLAN],
-      isTest: true, // Set to false in production
-    });
-
-    const hasActivePlan = billingCheck.hasActivePayment;
-    const isPricingPage = url.pathname.includes("/pricing");
-
-    // Redirect to pricing if no active plan and not already on pricing
-    if (!hasActivePlan && !isPricingPage) {
-      console.log(`REDIRECT: ${session.shop} needs a plan. Redirecting to /app/pricing`);
-      return redirect("/app/pricing");
-    }
-
-    // Redirect to main app if plan is active and user is on pricing page
-    if (hasActivePlan && isPricingPage) {
-      console.log(`REDIRECT: ${session.shop} has a plan. Redirecting back to /app`);
-      return redirect("/app");
-    }
-
-    // Get store handle for dynamic links
-    const storeHandle = session.shop.split(".")[0];
-
-    return { 
-      apiKey: process.env.SHOPIFY_API_KEY || "", 
-      hasActivePlan,
-      storeHandle 
-    };
-  } catch (error) {
-    console.error("APP LOADER ERROR:", error);
-    throw error;
-  }
+  // eslint-disable-next-line no-undef
+  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
 
 export default function App() {
@@ -58,7 +25,6 @@ export default function App() {
     "/app/volume-discount": "Volume Discount",
     "/app/bxgy": "Buy X Get Y",
     "/app/analytics": "Analytics",
-    "/app/pricing": "Pricing & Plans",
     "/app/privacy-policy": "Privacy Policy",
     "/app/contact-us": "Contact Us",
     "/app/faq": "FAQ",
@@ -74,7 +40,6 @@ export default function App() {
         <s-link href="/app/product-bundle">Product Bundle</s-link>
         <s-link href="/app/volume-discount">Volume Discount</s-link>
         <s-link href="/app/bxgy">Buy X Get Y</s-link>
-        <s-link href="/app/pricing">Pricing</s-link>
         <s-link href="/app/privacy-policy">Privacy Policy</s-link>
         <s-link href="/app/contact-us">Contact Us</s-link>
         <s-link href="/app/faq">FAQ</s-link>
