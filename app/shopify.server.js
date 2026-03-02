@@ -55,7 +55,7 @@ const shopify = shopifyApp({
           data: { email: shopEmail }
         });
 
-        // Check if welcome email was already sent for this shop
+        // Check if welcome email was already sent for this shop across ANY session
         console.log(`AFTERAUTH: Checking if welcome email already sent for ${session.shop}`);
         const welcomeEmailAlreadySent = await db.session.findFirst({
           where: { 

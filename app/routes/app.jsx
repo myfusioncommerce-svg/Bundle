@@ -9,15 +9,20 @@ import { authenticate, MONTHLY_PLAN } from "../shopify.server";
 export const loader = async ({ request }) => {
   const { billing } = await authenticate.admin(request);
 
-  await billing.require({
+  // Check if they have an active plan
+  const billingCheck = await billing.check({
     plans: [MONTHLY_PLAN],
-    isTest: true,
-    onFailure: async () => billing.request({ 
-      plan: MONTHLY_PLAN, 
-      isTest: true,
-      returnUrl: `${process.env.SHOPIFY_APP_URL}/app`
-    }),
+    isTest: process.env.NODE_ENV !== "production",
   });
+
+  // If no active plan, request one
+  if (!billingCheck.hasActivePayment) {
+    await billing.request({
+      plan: MONTHLY_PLAN,
+      isTest: process.env.NODE_ENV !== "production",
+      returnUrl: `${process.env.SHOPIFY_APP_URL}/app`,
+    });
+  }
 
   // eslint-disable-next-line no-undef
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
