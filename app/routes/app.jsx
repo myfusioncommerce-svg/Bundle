@@ -18,14 +18,17 @@ export const loader = async ({ request }) => {
     });
 
     const hasActivePlan = billingCheck.hasActivePayment;
+    const isPricingPage = url.pathname.includes("/pricing");
 
-    // Redirect to pricing if no active plan and not already there
-    if (!hasActivePlan && url.pathname !== "/app/pricing") {
+    // Redirect to pricing if no active plan and not already on pricing
+    if (!hasActivePlan && !isPricingPage) {
+      console.log(`REDIRECT: ${session.shop} needs a plan. Redirecting to /app/pricing`);
       return redirect("/app/pricing");
     }
 
-    // Redirect to main app if active plan and already on pricing page
-    if (hasActivePlan && url.pathname === "/app/pricing") {
+    // Redirect to main app if plan is active and user is on pricing page
+    if (hasActivePlan && isPricingPage) {
+      console.log(`REDIRECT: ${session.shop} has a plan. Redirecting back to /app`);
       return redirect("/app");
     }
 

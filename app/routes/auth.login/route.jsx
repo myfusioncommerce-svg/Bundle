@@ -11,11 +11,14 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
-
-  return {
-    errors,
-  };
+  try {
+    const result = await login(request);
+    console.log("Login attempt result:", result);
+    return { errors: loginErrorMessage(result) };
+  } catch (error) {
+    console.error("LOGIN ACTION ERROR:", error);
+    return { errors: { shop: "Login process failed. Check server logs." } };
+  }
 };
 
 export default function Auth() {
