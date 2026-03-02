@@ -19,10 +19,12 @@ const shopify = shopifyApp({
   distribution: AppDistribution.AppStore,
   hooks: {
     afterAuth: async ({ session, admin }) => {
+      console.log(`AFTERAUTH: Starting for shop ${session.shop}`);
       shopify.registerWebhooks({ session });
 
       try {
         // Fetch shop details to get the contact email
+        console.log(`AFTERAUTH: Fetching shop details for ${session.shop}`);
         const response = await admin.graphql(`
           #graphql
           query getShopDetails {
@@ -33,15 +35,18 @@ const shopify = shopifyApp({
           }
         `);
         const payload = await response.json();
-        const shopEmail = payload?.data?.shop?.contactEmail || payload?.data?.shop?.email;
+        console.log(`AFTERAUTH: Shop details payload received`);
+        const shopEmail = payload?.data?.shop?.contactEmail || payload?.data?.shop?.email || "";
         
         // Save the shop email to the session for later use (like uninstallation)
+        console.log(`AFTERAUTH: Updating session ${session.id} with email ${shopEmail}`);
         await db.session.update({
           where: { id: session.id },
           data: { email: shopEmail }
         });
 
         // Check if welcome email was already sent for this shop
+        console.log(`AFTERAUTH: Checking if welcome email already sent for ${session.shop}`);
         const welcomeEmailAlreadySent = await db.session.findFirst({
           where: { 
             shop: session.shop,
@@ -50,19 +55,24 @@ const shopify = shopifyApp({
         });
 
         if (!welcomeEmailAlreadySent) {
+          console.log(`AFTERAUTH: Sending welcome email to ${shopEmail}`);
           await sendWelcomeEmail({
             shopDomain: session.shop,
             email: shopEmail
           });
 
           // Mark this session (and thus this shop) as having received the welcome email
+          console.log(`AFTERAUTH: Marking welcome email as sent in DB for session ${session.id}`);
           await db.session.update({
             where: { id: session.id },
             data: { welcomeEmailSent: true }
           });
+        } else {
+          console.log(`AFTERAUTH: Welcome email already sent for ${session.shop}, skipping.`);
         }
+        console.log(`AFTERAUTH: Successfully completed for ${session.shop}`);
       } catch (error) {
-        console.error("Error in afterAuth hook:", error);
+        console.error("CRITICAL ERROR in afterAuth hook:", error);
       }
     },
   },
