@@ -45,16 +45,13 @@ const shopify = shopifyApp({
           data: { email: shopEmail }
         });
 
-        // Check if welcome email was already sent for this shop
+        // Check if welcome email was already sent for this shop using the persistent Shop model
         console.log(`AFTERAUTH: Checking if welcome email already sent for ${session.shop}`);
-        const welcomeEmailAlreadySent = await db.session.findFirst({
-          where: { 
-            shop: session.shop,
-            welcomeEmailSent: true
-          }
+        const shopRecord = await db.shop.findUnique({
+          where: { shop: session.shop }
         });
 
-        if (!welcomeEmailAlreadySent) {
+        if (!shopRecord || !shopRecord.welcomeEmailSent) {
           console.log(`AFTERAUTH: Sending welcome email to ${shopEmail}`);
           await sendWelcomeEmail({
             shopDomain: session.shop,
@@ -68,11 +65,19 @@ const shopify = shopifyApp({
             email: shopEmail
           });
 
-          // Mark this session (and thus this shop) as having received the welcome email
-          console.log(`AFTERAUTH: Marking welcome email as sent in DB for session ${session.id}`);
-          await db.session.update({
-            where: { id: session.id },
-            data: { welcomeEmailSent: true }
+          // Create or update the persistent Shop record to mark as welcomed
+          console.log(`AFTERAUTH: Marking shop as welcomed in DB for ${session.shop}`);
+          await db.shop.upsert({
+            where: { shop: session.shop },
+            update: { 
+              welcomeEmailSent: true,
+              email: shopEmail
+            },
+            create: {
+              shop: session.shop,
+              email: shopEmail,
+              welcomeEmailSent: true
+            }
           });
         } else {
           console.log(`AFTERAUTH: Welcome email already sent for ${session.shop}, skipping.`);
