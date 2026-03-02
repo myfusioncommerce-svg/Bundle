@@ -5,11 +5,8 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import { BillingInterval } from "@shopify/shopify-api";
 import db from "./db.server";
 import { sendWelcomeEmail, sendAdminInstallNotification } from "./utils/email.server";
-
-export const MONTHLY_PLAN = "Monthly Subscription";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -20,13 +17,6 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(db),
   distribution: AppDistribution.AppStore,
-  billing: {
-    [MONTHLY_PLAN]: {
-      amount: 9.99,
-      currencyCode: "USD",
-      interval: BillingInterval.Every30Days,
-    },
-  },
   hooks: {
     afterAuth: async ({ session, admin }) => {
       console.log(`AFTERAUTH: Starting for shop ${session.shop}`);
@@ -55,7 +45,7 @@ const shopify = shopifyApp({
           data: { email: shopEmail }
         });
 
-        // Check if welcome email was already sent for this shop across ANY session
+        // Check if welcome email was already sent for this shop
         console.log(`AFTERAUTH: Checking if welcome email already sent for ${session.shop}`);
         const welcomeEmailAlreadySent = await db.session.findFirst({
           where: { 

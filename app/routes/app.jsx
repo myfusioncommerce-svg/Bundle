@@ -4,25 +4,10 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import enTranslations from "@shopify/polaris/locales/en.json";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { authenticate, MONTHLY_PLAN } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  const { billing } = await authenticate.admin(request);
-
-  // Check if they have an active plan
-  const billingCheck = await billing.check({
-    plans: [MONTHLY_PLAN],
-    isTest: process.env.NODE_ENV !== "production",
-  });
-
-  // If no active plan, request one
-  if (!billingCheck.hasActivePayment) {
-    await billing.request({
-      plan: MONTHLY_PLAN,
-      isTest: process.env.NODE_ENV !== "production",
-      returnUrl: `${process.env.SHOPIFY_APP_URL}/app`,
-    });
-  }
+  await authenticate.admin(request);
 
   // eslint-disable-next-line no-undef
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
