@@ -4,10 +4,30 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import enTranslations from "@shopify/polaris/locales/en.json";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { authenticate } from "../shopify.server";
+import { authenticate, MONTHLY_PLAN } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
+  const url = new URL(request.url);
+
+  // If we are already on the pricing page, don't redirect
+  if (url.pathname === "/app/pricing") {
+    return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  }
+
+  // Check if they have an active payment
+  const billingCheck = await billing.check({
+    plans: [MONTHLY_PLAN],
+    isTest: process.env.NODE_ENV !== "production",
+  });
+
+  if (!billingCheck.hasActivePayment) {
+    // If no active plan, force redirect to pricing page
+    throw new Response(null, {
+      status: 302,
+      headers: { Location: "/app/pricing" },
+    });
+  }
 
   // eslint-disable-next-line no-undef
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
@@ -28,22 +48,26 @@ export default function App() {
     "/app/privacy-policy": "Privacy Policy",
     "/app/contact-us": "Contact Us",
     "/app/faq": "FAQ",
+    "/app/pricing": "Select Your Plan",
   };
 
   const currentTitle = titles[location.pathname] || "Bundle Builder";
+  const isPricingPage = location.pathname === "/app/pricing";
 
   return (
     <AppProvider embedded apiKey={apiKey}>
       <PolarisProvider i18n={enTranslations} linkComponent={Link}>
-        <s-app-nav>
-        <s-link href="/app">Bundle Configuration</s-link>
-        <s-link href="/app/product-bundle">Product Bundle</s-link>
-        <s-link href="/app/volume-discount">Volume Discount</s-link>
-        <s-link href="/app/bxgy">Buy X Get Y</s-link>
-        <s-link href="/app/privacy-policy">Privacy Policy</s-link>
-        <s-link href="/app/contact-us">Contact Us</s-link>
-        <s-link href="/app/faq">FAQ</s-link>
-      </s-app-nav>
+        {!isPricingPage && (
+          <s-app-nav>
+            <s-link href="/app">Bundle Configuration</s-link>
+            <s-link href="/app/product-bundle">Product Bundle</s-link>
+            <s-link href="/app/volume-discount">Volume Discount</s-link>
+            <s-link href="/app/bxgy">Buy X Get Y</s-link>
+            <s-link href="/app/privacy-policy">Privacy Policy</s-link>
+            <s-link href="/app/contact-us">Contact Us</s-link>
+            <s-link href="/app/faq">FAQ</s-link>
+          </s-app-nav>
+        )}
       
       <div style={{
         display: 'flex',

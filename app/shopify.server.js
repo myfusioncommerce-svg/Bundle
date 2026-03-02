@@ -5,18 +5,28 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
+import { LATEST_API_VERSION, BillingInterval } from "@shopify/shopify-api";
 import db from "./db.server";
 import { sendWelcomeEmail, sendAdminInstallNotification } from "./utils/email.server";
+
+export const MONTHLY_PLAN = "Monthly Subscription";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
-  apiVersion: ApiVersion.October25,
+  apiVersion: ApiVersion.October24,
   scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(db),
   distribution: AppDistribution.AppStore,
+  billing: {
+    [MONTHLY_PLAN]: {
+      amount: 9.99,
+      currencyCode: "USD",
+      interval: BillingInterval.Every30Days,
+    },
+  },
   hooks: {
     afterAuth: async ({ session, admin }) => {
       console.log(`AFTERAUTH: Starting for shop ${session.shop}`);
