@@ -245,52 +245,55 @@ export async function sendWelcomeEmail({ shopDomain, email }) {
       ],
       subject: `Welcome to Fusion Upsell Bundle — Start Building High-Converting Bundles Today 🚀`,
       htmlbody: `
-        ${COMMON_EMAIL_STYLE}
-        <div class="wrapper">
-          <table class="main">
+        <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f0ede8; margin: 0; padding: 40px 0; -webkit-font-smoothing: antialiased; color: #1a1523;">
+          <table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; margin: 0 auto; width: 600px; border-spacing: 0; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 32px rgba(26,21,35,.10); border-collapse: collapse;">
             <tr>
-              <td class="client-chrome">
-                <div class="dot" style="background: #ff5f57;"></div>
-                <div class="dot" style="background: #febc2e;"></div>
-                <div class="dot" style="background: #28c840;"></div>
+              <td style="background: #2d2a35; padding: 14px 20px; text-align: left;">
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #ff5f57;"></div>
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #febc2e;"></div>
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #28c840;"></div>
               </td>
             </tr>
             <tr>
-              <td class="hero">
-                <div class="hero-eyebrow">You're officially in</div>
-                <h1>Welcome to<br><em>Fusion Upsell.</em></h1>
-                <p class="hero-sub">Turn more orders into bigger revenue, starting today.</p>
+              <td style="background: linear-gradient(135deg, #1a1523 0%, #2f2340 60%, #3d2a52 100%); padding: 52px 40px; text-align: center; color: #faf8f5;">
+                <div style="display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #e8a838; background: rgba(232,168,56,.12); border: 1px solid rgba(232,168,56,.25); padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;">You're officially in</div>
+                <h1 style="font-family: 'DM Serif Display', serif, Georgia, serif; font-size: 38px; line-height: 1.15; margin: 0 0 12px; font-weight: 400;">Welcome to<br><em style="font-style: italic; color: #e8a0a0;">Fusion Upsell.</em></h1>
+                <p style="font-size: 14px; opacity: 0.6; margin: 0;">Turn more orders into bigger revenue, starting today.</p>
               </td>
             </tr>
             <tr>
-              <td class="content">
-                <p class="greeting">Hey there,</p>
+              <td style="padding: 44px 48px; line-height: 1.8; font-size: 15px; color: #3d3749;">
+                <p style="font-size: 17px; font-weight: 500; margin-bottom: 16px; color: #1a1523;">Hey there,</p>
                 <p>
                   Thank you for installing <strong>Fusion Upsell Bundle</strong>. You're now equipped with powerful tools to
                   increase your store’s average order value and create smarter product offers your customers love.
                 </p>
 
-                <div class="highlight-box">
-                  <div class="hb-label">What you can do right away</div>
-                  <ul class="features">
-                    <li>Create high-converting product bundles in minutes</li>
-                    <li>Offer quantity breaks and tiered discounts</li>
-                    <li>Design custom upsell offers matching your brand</li>
-                    <li>Show bundles directly on product pages</li>
-                    <li>Encourage customers to buy more with smart incentives</li>
+                <div style="background: #fdf0ed; border-left: 3px solid #c8553d; border-radius: 0 10px 10px 0; padding: 24px; margin: 28px 0;">
+                  <div style="font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c8553d; margin-bottom: 12px;">What you can do right away</div>
+                  <ul style="margin: 0; padding: 0; list-style: none;">
+                    <li style="margin-bottom: 10px; padding-left: 20px; position: relative; font-size: 14px;"><span style="color: #c8553d; margin-right: 10px;">✦</span>Create high-converting product bundles in minutes</li>
+                    <li style="margin-bottom: 10px; padding-left: 20px; position: relative; font-size: 14px;"><span style="color: #c8553d; margin-right: 10px;">✦</span>Offer quantity breaks and tiered discounts</li>
+                    <li style="margin-bottom: 10px; padding-left: 20px; position: relative; font-size: 14px;"><span style="color: #c8553d; margin-right: 10px;">✦</span>Design custom upsell offers matching your brand</li>
+                    <li style="margin-bottom: 10px; padding-left: 20px; position: relative; font-size: 14px;"><span style="color: #c8553d; margin-right: 10px;">✦</span>Show bundles directly on product pages</li>
+                    <li style="margin-bottom: 10px; padding-left: 20px; position: relative; font-size: 14px;"><span style="color: #c8553d; margin-right: 10px;">✦</span>Encourage customers to buy more with smart incentives</li>
                   </ul>
                 </div>
 
-                <div class="incentive">
-                  <div class="incentive-icon">🎁</div>
-                  <div class="incentive-text">
-                    <div class="incentive-label">Quick Start Tip</div>
-                    <p>Launch a simple <strong>“Buy More, Save More”</strong> bundle — it's the fastest way to boost conversions instantly.</p>
-                  </div>
+                <div style="background: #fef9ee; border: 1.5px dashed rgba(232,168,56,.4); border-radius: 12px; padding: 20px 24px; margin: 28px 0;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="50" style="font-size: 32px; vertical-align: middle;">🎁</td>
+                      <td style="vertical-align: middle; font-size: 14px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #e8a838; text-transform: uppercase; margin-bottom: 4px;">Quick Start Tip</div>
+                        <p style="margin: 0;">Launch a simple <strong>“Buy More, Save More”</strong> bundle — it's the fastest way to boost conversions instantly.</p>
+                      </td>
+                    </tr>
+                  </table>
                 </div>
 
-                <div class="cta-block">
-                  <a href="https://apps.shopify.com/bundle-builder-6" class="button">
+                <div style="text-align: center; margin: 40px 0;">
+                  <a href="https://apps.shopify.com/bundle-builder-6" style="background: #c8553d; color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 100px; font-weight: 600; display: inline-block; font-size: 15px;">
                     Open Your App Dashboard →
                   </a>
                 </div>
@@ -309,12 +312,12 @@ export async function sendWelcomeEmail({ shopDomain, email }) {
               </td>
             </tr>
             <tr>
-              <td class="footer">
+              <td style="text-align: center; padding: 32px 48px; font-size: 12px; color: #a09bab; background-color: #faf8f5; border-top: 1px solid #ebe8e2;">
                 <div style="margin-bottom: 15px;">
-                  <a href="#">Manage preferences</a>
-                  <a href="#">View in browser</a>
+                  <a href="#" style="color: #6b6578; text-decoration: none; margin: 0 10px;">Manage preferences</a>
+                  <a href="#" style="color: #6b6578; text-decoration: none; margin: 0 10px;">View in browser</a>
                 </div>
-                <p>© 2026 Fusion Upsell Bundle · Shopify App Store</p>
+                <p style="margin: 8px 0;">© 2026 Fusion Upsell Bundle · Shopify App Store</p>
               </td>
             </tr>
           </table>
@@ -328,7 +331,11 @@ export async function sendWelcomeEmail({ shopDomain, email }) {
 }
 
 export async function sendGoodbyeEmail({ shopDomain, email }) {
-  if (!ZEPTOMAIL_TOKEN) return;
+  console.log(`DEBUG: Attempting sendGoodbyeEmail for ${shopDomain} to ${email}`);
+  if (!ZEPTOMAIL_TOKEN) {
+    console.error("DEBUG: ZEPTOMAIL_TOKEN missing in sendGoodbyeEmail");
+    return;
+  }
 
   const client = new SendMailClient({
     url: ZEPTOMAIL_URL,
@@ -337,11 +344,11 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
 
   try {
     if (!email) {
-      console.log(`Skipping goodbye email for ${shopDomain} - no email address available.`);
+      console.warn(`DEBUG: Skipping goodbye email for ${shopDomain} - email is null/undefined.`);
       return;
     }
 
-    await client.sendMail({
+    const response = await client.sendMail({
       from: {
         address: SENDER_EMAIL,
         name: SENDER_NAME,
@@ -356,41 +363,40 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
       ],
       subject: `Sorry to See You Go — Fusion Upsell Bundle`,
       htmlbody: `
-        ${COMMON_EMAIL_STYLE}
-        <div class="wrapper">
-          <table class="main">
+        <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f0ede8; margin: 0; padding: 40px 0; -webkit-font-smoothing: antialiased; color: #1a1523;">
+          <table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; margin: 0 auto; width: 600px; border-spacing: 0; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 32px rgba(26,21,35,.10); border-collapse: collapse;">
             <tr>
-              <td class="client-chrome">
-                <div class="dot" style="background: #ff5f57;"></div>
-                <div class="dot" style="background: #febc2e;"></div>
-                <div class="dot" style="background: #28c840;"></div>
+              <td style="background: #2d2a35; padding: 14px 20px; text-align: left;">
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #ff5f57;"></div>
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #febc2e;"></div>
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #28c840;"></div>
               </td>
             </tr>
             <tr>
-              <td class="hero">
-                <div class="hero-eyebrow">We're sorry to see you go</div>
-                <h1>We <em>miss</em> you,<br>already.</h1>
-                <p class="hero-sub">Thank you for giving Fusion Upsell a try.</p>
+              <td style="background: linear-gradient(135deg, #1a1523 0%, #2f2340 60%, #3d2a52 100%); padding: 52px 40px; text-align: center; color: #faf8f5;">
+                <div style="display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #e8a838; background: rgba(232,168,56,.12); border: 1px solid rgba(232,168,56,.25); padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;">We're sorry to see you go</div>
+                <h1 style="font-family: 'DM Serif Display', serif, Georgia, serif; font-size: 38px; line-height: 1.15; margin: 0 0 12px; font-weight: 400;">We <em style="font-style: italic; color: #e8a0a0;">miss</em> you,<br>already.</h1>
+                <p style="font-size: 14px; opacity: 0.6; margin: 0;">Thank you for giving Fusion Upsell a try.</p>
               </td>
             </tr>
             <tr>
-              <td class="content">
-                <p class="greeting">Hi there,</p>
+              <td style="padding: 44px 48px; line-height: 1.8; font-size: 15px; color: #3d3749;">
+                <p style="font-size: 17px; font-weight: 500; margin-bottom: 16px; color: #1a1523;">Hi there,</p>
                 <p>
                   We noticed you've uninstalled <strong>Fusion Upsell Bundle</strong>. We truly appreciate the opportunity 
                   to have been part of your store's journey, even if only for a short time.
                 </p>
 
-                <div class="highlight-box">
-                  <div class="hb-label">✍️ Help us improve</div>
-                  <p style="font-size: 14px; margin: 0;">
+                <div style="background: #fdf0ed; border-left: 3px solid #c8553d; border-radius: 0 10px 10px 0; padding: 24px; margin: 28px 0;">
+                  <div style="font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c8553d; margin-bottom: 12px;">✍️ Help us improve</div>
+                  <p style="font-size: 14px; margin: 0; color: #1a1523;">
                     What made you decide to uninstall? We read every piece of feedback, and it helps us build a better tool 
                     for the entire Shopify community.
                   </p>
                 </div>
 
-                <div class="cta-block">
-                  <a href="https://apps.shopify.com/bundle-builder-6" class="button">
+                <div style="text-align: center; margin: 40px 0;">
+                  <a href="https://apps.shopify.com/bundle-builder-6" style="background: #c8553d; color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 100px; font-weight: 600; display: inline-block; font-size: 15px;">
                     Take me back to the app →
                   </a>
                   <p style="font-size: 11px; color: #6b6578; margin-top: 12px;">One click. Your data is exactly where you left it.</p>
@@ -402,32 +408,32 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
                   If you ever decide to come back, we'll be here ready to help you boost conversions and grow your revenue.
                 </p>
 
-                <p style="margin-top: 30px; font-weight: 500;">
+                <p style="margin-top: 30px; font-weight: 500; color: #1a1523;">
                   Wishing you continued success 🚀
                 </p>
 
-                <p>
+                <p style="color: #1a1523;">
                   <strong>Team Fusion Upsell Bundle</strong>
                 </p>
               </td>
             </tr>
             <tr>
-              <td class="footer">
+              <td style="text-align: center; padding: 32px 48px; font-size: 12px; color: #a09bab; background-color: #faf8f5; border-top: 1px solid #ebe8e2;">
                 <div style="margin-bottom: 15px;">
-                  <a href="#">Manage preferences</a>
-                  <a href="#">Reinstall app</a>
-                  <a href="#">Unsubscribe</a>
+                  <a href="#" style="color: #6b6578; text-decoration: none; margin: 0 10px;">Manage preferences</a>
+                  <a href="#" style="color: #6b6578; text-decoration: none; margin: 0 10px;">Reinstall app</a>
+                  <a href="#" style="color: #6b6578; text-decoration: none; margin: 0 10px;">Unsubscribe</a>
                 </div>
-                <p>© 2026 Fusion Upsell Bundle · Sent after app uninstallation</p>
+                <p style="margin: 8px 0;">© 2026 Fusion Upsell Bundle · Sent after app uninstallation</p>
               </td>
             </tr>
           </table>
         </div>
       `,
     });
-    console.log(`Goodbye email sent to ${shopDomain}`);
+    console.log(`DEBUG: Goodbye email sent to ${shopDomain}. Response:`, JSON.stringify(response));
   } catch (error) {
-    console.error("Error sending goodbye email:", error);
+    console.error(`DEBUG: Error sending goodbye email to ${shopDomain}:`, error);
   }
 }
 
