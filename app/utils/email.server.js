@@ -22,25 +22,25 @@ const ADMIN_EMAIL = process.env.CONTACT_ADMIN_EMAIL || SENDER_EMAIL;
 
 const COMMON_EMAIL_STYLE = `
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-    .wrapper { width: 100%; table-layout: fixed; background-image: linear-gradient(180deg, #e2e8f0 0%, #f0f2f5 100%); padding: 60px 0; }
-    .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #1a202c; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-    .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 60px 40px; text-align: center; color: #ffffff; position: relative; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #0f172a; padding: 60px 0; }
+    .main { background-color: #1e293b; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #f8fafc; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+    .header { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 60px 40px; text-align: center; color: #ffffff; position: relative; }
     .header h1 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.025em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .header p { margin: 16px 0 0; font-size: 18px; opacity: 0.95; font-weight: 500; }
-    .content { padding: 50px 50px; line-height: 1.8; font-size: 16px; color: #4a5568; background-color: #ffffff; }
-    .content h2 { color: #111827; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 24px; letter-spacing: -0.025em; }
+    .content { padding: 50px 50px; line-height: 1.8; font-size: 16px; color: #cbd5e1; background-color: #1e293b; }
+    .content h2 { color: #ffffff; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 24px; letter-spacing: -0.025em; }
     .features { margin: 32px 0; padding-left: 0; list-style: none; }
-    .features li { margin-bottom: 16px; padding-left: 32px; position: relative; }
-    .features li::before { content: '✓'; position: absolute; left: 0; top: 2px; width: 20px; height: 20px; background-color: #e0e7ff; color: #4f46e5; border-radius: 50%; text-align: center; line-height: 20px; font-size: 12px; font-weight: bold; }
-    .tip { background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 24px; margin: 40px 0; color: #0369a1; border: 1px solid #bae6fd; }
-    .feedback { background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 100%); border-radius: 12px; padding: 24px; margin: 40px 0; color: #9a3412; border: 1px solid #fed7aa; }
-    .info-box { background-color: #f8fafc; border-radius: 12px; padding: 30px; margin: 32px 0; border: 1px solid #e2e8f0; }
-    .info-item { margin-bottom: 14px; display: block; font-size: 15px; }
-    .info-label { font-weight: 600; color: #64748b; width: 120px; display: inline-block; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .features li { margin-bottom: 16px; padding-left: 32px; position: relative; color: #e2e8f0; }
+    .features li::before { content: '✓'; position: absolute; left: 0; top: 2px; width: 22px; height: 22px; background-color: #064e3b; color: #4ade80; border-radius: 50%; text-align: center; line-height: 22px; font-size: 12px; font-weight: bold; }
+    .tip { background: linear-gradient(90deg, #064e3b 0%, #065f46 100%); border-radius: 12px; padding: 24px; margin: 40px 0; color: #dcfce7; border: 1px solid #059669; }
+    .feedback { background: linear-gradient(90deg, #451a03 0%, #78350f 100%); border-radius: 12px; padding: 24px; margin: 40px 0; color: #ffedd5; border: 1px solid #92400e; }
+    .info-box { background-color: #334155; border-radius: 12px; padding: 30px; margin: 32px 0; border: 1px solid #475569; }
+    .info-item { margin-bottom: 14px; display: block; font-size: 15px; color: #f1f5f9; }
+    .info-label { font-weight: 600; color: #94a3b8; width: 120px; display: inline-block; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
     .cta { text-align: center; margin: 50px 0; }
-    .button { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: #ffffff !important; padding: 20px 45px; text-decoration: none; border-radius: 12px; font-weight: 700; display: inline-block; font-size: 18px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4); }
-    .footer { text-align: center; padding: 40px 20px; font-size: 14px; color: #94a3b8; background-color: #f8fafc; border-top: 1px solid #f1f5f9; }
+    .button { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff !important; padding: 20px 45px; text-decoration: none; border-radius: 12px; font-weight: 700; display: inline-block; font-size: 18px; box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.4); transition: transform 0.2s; }
+    .footer { text-align: center; padding: 40px 20px; font-size: 14px; color: #64748b; background-color: #0f172a; border-top: 1px solid #1e293b; }
     .footer p { margin: 8px 0; }
   </style>
 `;
@@ -224,56 +224,66 @@ export async function sendWelcomeEmail({ shopDomain, email }) {
           <table class="main">
             <tr>
               <td class="header">
-                <h1>Welcome to Fusion Upsell Bundle 🚀</h1>
-                <p>Turn more orders into bigger revenue</p>
+                <h1>🚀 Welcome to Fusion Upsell Bundle</h1>
+                <p>Turn more orders into bigger revenue 💰</p>
               </td>
             </tr>
             <tr>
               <td class="content">
-                <h2>You're officially in!</h2>
+                <h2>🎉 You're officially in!</h2>
 
                 <p>
-                  Thank you for installing <strong>Fusion Upsell Bundle</strong>.  
-                  You're now equipped with powerful tools to increase your store’s average order value and create smarter product offers that customers love.
+                  Thank you for installing <strong>Fusion Upsell Bundle</strong>. You're now equipped with powerful tools to
+                  <strong>increase your store’s average order value 📈</strong> and create smarter product offers your customers love ❤️
                 </p>
 
-                <p><strong>Here’s what you can start doing right away:</strong></p>
+                <div style="border-top: 1px solid #334155; margin: 30px 0;"></div>
+
+                <h3 style="color: #ffffff; font-size: 20px; margin-bottom: 20px;">⚡ What you can do right away:</h3>
 
                 <ul class="features">
-                  <li>Create high-converting product bundles in minutes</li>
-                  <li>Offer quantity breaks and tiered discounts</li>
-                  <li>Design custom upsell offers that match your brand</li>
-                  <li>Show bundles directly on product or bundle pages</li>
-                  <li>Encourage customers to buy more with smart incentives</li>
+                  <li>✨ Create high-converting product bundles in minutes</li>
+                  <li>📊 Offer quantity breaks and tiered discounts</li>
+                  <li>🎯 Design custom upsell offers matching your brand</li>
+                  <li>🛍️ Show bundles directly on product or bundle pages</li>
+                  <li>🚀 Encourage customers to buy more with smart incentives</li>
                 </ul>
 
+                <div style="border-top: 1px solid #334155; margin: 30px 0;"></div>
+
                 <div class="tip">
-                  <strong>Quick Start Tip:</strong><br>
-                  Launch a simple “Buy More, Save More” bundle first — it's one of the fastest ways to boost conversions and revenue.
+                  <h3 style="margin-top: 0; color: #4ade80; font-size: 18px;">💡 Quick Start Tip</h3>
+                  <p>
+                    Launch a simple <strong>“Buy More, Save More”</strong> bundle — one of the fastest ways to boost conversions and revenue instantly 📈
+                  </p>
                 </div>
 
                 <div class="cta">
                   <a href="https://apps.shopify.com/bundle-builder-6" class="button">
-                    Open Your App Dashboard
+                    👉 Open Your App Dashboard
                   </a>
                 </div>
 
+                <div style="border-top: 1px solid #334155; margin: 30px 0;"></div>
+
                 <p>
-                  Need help setting things up or want optimization tips?  
-                  Just reply to this email — our team is always happy to help.
+                  🤝 Need help setting things up or want optimization tips?  
+                  Just reply to this email — our team is always happy to help 😊
+                </p>
+
+                <p style="margin-top: 30px; font-weight: 500; color: #ffffff;">
+                  💙 Let’s grow your store together!
                 </p>
 
                 <p>
-                  Let’s grow your store together 💙
+                  <strong>Team Fusion Upsell Bundle</strong>
                 </p>
-
-                <p><strong>Team Fusion Upsell Bundle</strong></p>
               </td>
             </tr>
             <tr>
               <td class="footer">
                 <p>© 2026 Fusion Upsell Bundle. All rights reserved.</p>
-                <p>You’re receiving this email because you installed Fusion Upsell Bundle on Shopify.</p>
+                <p>You received this email because you installed Fusion Upsell Bundle on Shopify.</p>
               </td>
             </tr>
           </table>
@@ -319,7 +329,7 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
         <div class="wrapper">
           <table class="main">
             <tr>
-              <td class="header" style="background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);">
+              <td class="header" style="background: linear-gradient(135deg, #475569 0%, #1e293b 100%);">
                 <h1>We’re Sorry to See You Go 💙</h1>
                 <p>Thank you for giving us a try</p>
               </td>
@@ -331,25 +341,35 @@ export async function sendGoodbyeEmail({ shopDomain, email }) {
                   We noticed that you’ve uninstalled <strong>Fusion Upsell Bundle</strong>, and we just wanted to say thank you for giving us a try.  
                   We truly appreciate the opportunity to have been part of your store’s journey.
                 </p>
+
+                <div style="border-top: 1px solid #334155; margin: 30px 0;"></div>
+
                 <p>
                   If something didn’t work the way you expected, we’d really love to learn from your experience so we can improve for other merchants.
                 </p>
+
                 <div class="feedback">
-                  <strong>Help us improve:</strong><br>
-                  What made you decide to uninstall? Your feedback helps us build a better tool for the Shopify community.
+                  <h3 style="margin-top: 0; color: #ffedd5; font-size: 18px;">✍️ Help us improve</h3>
+                  <p>
+                    What made you decide to uninstall? Your feedback helps us build a better tool for the Shopify community.
+                  </p>
                 </div>
+
                 <div class="cta">
-                  <a href="https://apps.shopify.com/bundle-builder-6" class="button" style="background: linear-gradient(135deg, #4b5563 0%, #374151 100%); box-shadow: 0 10px 15px -3px rgba(75, 85, 99, 0.4);">
-                    Reinstall Fusion Upsell Bundle
+                  <a href="https://apps.shopify.com/bundle-builder-6" class="button">
+                    🚀 Reinstall Fusion Upsell Bundle
                   </a>
                 </div>
+
+                <div style="border-top: 1px solid #334155; margin: 30px 0;"></div>
+
                 <p>
                   If you ever decide to come back, we’ll be here ready to help you boost conversions and grow your revenue.
                 </p>
                 <p>
                   Wishing you continued success with your store 🚀
                 </p>
-                <p><strong>Team Fusion Upsell Bundle</strong></p>
+                <p style="margin-top: 30px;"><strong>Team Fusion Upsell Bundle</strong></p>
               </td>
             </tr>
             <tr>
