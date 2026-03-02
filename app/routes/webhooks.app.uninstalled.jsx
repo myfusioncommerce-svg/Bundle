@@ -44,6 +44,10 @@ export const action = async ({ request }) => {
   // If this webhook already ran, the session may have been deleted previously.
   if (session) {
     await db.session.deleteMany({ where: { shop } });
+    
+    // Also cleanup the persistent Shop record so if they reinstall, they get a welcome email again
+    console.log(`UNINSTALL LOG: Cleaning up Shop record for ${shop}`);
+    await db.shop.deleteMany({ where: { shop } });
   }
 
   return new Response();
