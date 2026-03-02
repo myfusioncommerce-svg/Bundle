@@ -6,7 +6,7 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import db from "./db.server";
-import { sendWelcomeEmail } from "./utils/email.server";
+import { sendWelcomeEmail, sendAdminInstallNotification } from "./utils/email.server";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -57,6 +57,13 @@ const shopify = shopifyApp({
         if (!welcomeEmailAlreadySent) {
           console.log(`AFTERAUTH: Sending welcome email to ${shopEmail}`);
           await sendWelcomeEmail({
+            shopDomain: session.shop,
+            email: shopEmail
+          });
+
+          // Trigger admin notification for new installation
+          console.log(`AFTERAUTH: Sending admin installation alert for ${session.shop}`);
+          await sendAdminInstallNotification({
             shopDomain: session.shop,
             email: shopEmail
           });

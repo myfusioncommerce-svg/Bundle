@@ -496,3 +496,85 @@ export async function sendAdminUninstallNotification({ shopDomain, email, phone 
     console.error("Error sending admin uninstall notification:", error);
   }
 }
+
+export async function sendAdminInstallNotification({ shopDomain, email }) {
+  if (!ZEPTOMAIL_TOKEN) return;
+
+  const client = new SendMailClient({
+    url: ZEPTOMAIL_URL,
+    token: ZEPTOMAIL_TOKEN,
+  });
+
+  try {
+    await client.sendMail({
+      from: {
+        address: SENDER_EMAIL,
+        name: SENDER_NAME,
+      },
+      to: [
+        {
+          email_address: {
+            address: ADMIN_EMAIL,
+            name: "Admin",
+          },
+        },
+      ],
+      subject: `🎉 New Installation: ${shopDomain}`,
+      htmlbody: `
+        <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f0ede8; margin: 0; padding: 40px 0; -webkit-font-smoothing: antialiased; color: #1a1523;">
+          <table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; margin: 0 auto; width: 600px; border-spacing: 0; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 32px rgba(26,21,35,.10); border-collapse: collapse;">
+            <tr>
+              <td style="background: #2d2a35; padding: 14px 20px; text-align: left;">
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #ff5f57;"></div>
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #febc2e;"></div>
+                <div style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: #28c840;"></div>
+              </td>
+            </tr>
+            <tr>
+              <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 52px 40px; text-align: center; color: #faf8f5;">
+                <div style="display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #ffffff; background: rgba(255,255,255,0.2); padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;">New Growth Achievement</div>
+                <h1 style="font-family: 'DM Serif Display', serif, Georgia, serif; font-size: 38px; line-height: 1.15; margin: 0 0 12px; font-weight: 400;">New Store<br><em style="font-style: italic; color: #d1fae5;">Installed!</em></h1>
+                <p style="font-size: 14px; opacity: 0.9; margin: 0;">Fusion Upsell Bundle has a new user.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 44px 48px; line-height: 1.8; font-size: 15px; color: #3d3749;">
+                <p style="font-size: 17px; font-weight: 500; margin-bottom: 16px; color: #1a1523;">Admin Update,</p>
+                <p>Great news! A new merchant has just installed <strong>Fusion Upsell Bundle</strong> on their Shopify store.</p>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin: 28px 0;">
+                  <div style="font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #64748b; margin-bottom: 12px;">Merchant Details</div>
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size: 14px;">
+                    <tr>
+                      <td style="padding-bottom: 8px; color: #64748b; width: 100px;">Store URL:</td>
+                      <td style="padding-bottom: 8px; color: #1a1523;"><strong>${shopDomain}</strong></td>
+                    </tr>
+                    <tr>
+                      <td style="color: #64748b;">Email:</td>
+                      <td style="color: #1a1523;"><strong>${email || "Not captured"}</strong></td>
+                    </tr>
+                  </table>
+                </div>
+
+                <div style="text-align: center; margin: 40px 0;">
+                  <a href="https://${shopDomain}/admin" style="background: #10b981; color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 100px; font-weight: 600; display: inline-block; font-size: 15px;">
+                    Visit Merchant Admin →
+                  </a>
+                </div>
+
+                <div style="border-top: 1px solid #ebe8e2; margin: 32px 0;"></div>
+
+                <p style="font-size: 13px; color: #6b6578; text-align: center;">
+                  Automated Alert System | Fusion Upsell Bundle
+                </p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      `,
+    });
+    console.log(`Admin install notification sent for ${shopDomain}`);
+  } catch (error) {
+    console.error(`Error sending admin install notification for ${shopDomain}:`, error);
+  }
+}
