@@ -8,6 +8,7 @@ export const action = async ({ request }) => {
   console.log(`Received ${topic} webhook for ${shop}`);
 
   // Fetch shop email from the database directly by shop name
+  console.log(`UNINSTALL LOG: Searching DB for shop: ${shop}`);
   const storedSession = await db.session.findFirst({
     where: { shop, email: { not: null } },
     orderBy: { id: 'desc' }
@@ -19,13 +20,13 @@ export const action = async ({ request }) => {
   try {
     // Trigger goodbye notification to the merchant
     if (shopEmail) {
-      console.log(`UNINSTALL LOG: Attempting to send goodbye email to ${shopEmail}`);
+      console.log(`UNINSTALL LOG: Sending goodbye email to merchant at ${shopEmail}`);
       await sendGoodbyeEmail({ 
         shopDomain: shop,
         email: shopEmail
       });
     } else {
-      console.log(`UNINSTALL LOG: Skipping goodbye email - NO EMAIL in DB for ${shop}`);
+      console.warn(`UNINSTALL LOG: No merchant email found in DB for ${shop}. Merchant goodbye email skipped.`);
     }
 
     // Trigger alert to admin with merchant details
@@ -34,6 +35,7 @@ export const action = async ({ request }) => {
       shopDomain: shop,
       email: shopEmail,
     });
+    console.log(`UNINSTALL LOG: All notifications processed for ${shop}`);
   } catch (error) {
     console.error("UNINSTALL ERROR: notification failure:", error);
   }
