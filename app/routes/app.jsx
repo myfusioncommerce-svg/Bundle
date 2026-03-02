@@ -7,35 +7,40 @@ import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate, MONTHLY_PLAN } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  const { session, billing } = await authenticate.admin(request);
-  const url = new URL(request.url);
+  try {
+    const { session, billing } = await authenticate.admin(request);
+    const url = new URL(request.url);
 
-  // Check if shop has an active plan
-  const billingCheck = await billing.check({
-    plans: [MONTHLY_PLAN],
-    isTest: true, // Set to false in production
-  });
+    // Check if shop has an active plan
+    const billingCheck = await billing.check({
+      plans: [MONTHLY_PLAN],
+      isTest: true, // Set to false in production
+    });
 
-  const hasActivePlan = billingCheck.hasActivePayment;
+    const hasActivePlan = billingCheck.hasActivePayment;
 
-  // Redirect to pricing if no active plan and not already there
-  if (!hasActivePlan && url.pathname !== "/app/pricing") {
-    return redirect("/app/pricing");
+    // Redirect to pricing if no active plan and not already there
+    if (!hasActivePlan && url.pathname !== "/app/pricing") {
+      return redirect("/app/pricing");
+    }
+
+    // Redirect to main app if active plan and already on pricing page
+    if (hasActivePlan && url.pathname === "/app/pricing") {
+      return redirect("/app");
+    }
+
+    // Get store handle for dynamic links
+    const storeHandle = session.shop.split(".")[0];
+
+    return { 
+      apiKey: process.env.SHOPIFY_API_KEY || "", 
+      hasActivePlan,
+      storeHandle 
+    };
+  } catch (error) {
+    console.error("APP LOADER ERROR:", error);
+    throw error;
   }
-
-  // Redirect to main app if active plan and already on pricing page
-  if (hasActivePlan && url.pathname === "/app/pricing") {
-    return redirect("/app");
-  }
-
-  // Get store handle for dynamic links
-  const storeHandle = session.shop.split(".")[0];
-
-  return { 
-    apiKey: process.env.SHOPIFY_API_KEY || "", 
-    hasActivePlan,
-    storeHandle 
-  };
 };
 
 export default function App() {
