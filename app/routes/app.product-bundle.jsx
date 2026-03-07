@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Page, Card, Text, BlockStack, InlineStack, Button, Box } from "@shopify/polaris";
 import { useLoaderData, useSubmit, useActionData, useNavigation, useOutletContext } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
@@ -224,164 +225,154 @@ export default function ProductBundle() {
   };
 
   return (
-    <s-page>
-      {saveStatus && (
-        <div style={{
-          padding: '12px 16px',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          backgroundColor: saveStatus.type === 'success' ? '#d4edda' : '#f8d7da',
-          color: saveStatus.type === 'success' ? '#155724' : '#721c24',
-          border: `1px solid ${saveStatus.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
-        }}>
-          {saveStatus.message}
-        </div>
-      )}
+    <Page>
+      <BlockStack gap="500">
+        {saveStatus && (
+          <div style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: saveStatus.type === 'success' ? '#d4edda' : '#f8d7da',
+            color: saveStatus.type === 'success' ? '#155724' : '#721c24',
+            border: `1px solid ${saveStatus.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+          }}>
+            {saveStatus.message}
+          </div>
+        )}
 
-      <s-section heading="Products">
-        <s-paragraph>Select the products that will be available in the product bundle.</s-paragraph>
-        <s-stack direction="block" gap="base">
-          <s-stack direction="inline" gap="base">
-            <s-button onClick={handleSelectProducts}>
-              {products.length > 0 ? "Edit Products" : "Select Products"}
-            </s-button>
-            
-            {products.length > 0 && (
-              <s-button variant="secondary" onClick={() => setIsModalOpen(true)}>
-                View Selected ({products.length})
-              </s-button>
-            )}
-          </s-stack>
-        </s-stack>
-      </s-section>
+        <Card>
+          <BlockStack gap="400">
+            <Text as="h2" variant="headingMd">Products</Text>
+            <Text as="p" tone="subdued">Select the products that will be available in the product bundle.</Text>
+            <InlineStack gap="300">
+              <Button onClick={handleSelectProducts}>
+                {products.length > 0 ? "Edit Products" : "Select Products"}
+              </Button>
+              
+              {products.length > 0 && (
+                <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
+                  View Selected ({products.length})
+                </Button>
+              )}
+            </InlineStack>
+          </BlockStack>
+        </Card>
 
-      {isModalOpen && (
-        <div 
-          role="presentation"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }} 
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsModalOpen(false);
-          }}
-        >
+        {isModalOpen && (
           <div 
-            role="dialog"
-            aria-modal="true"
+            role="presentation"
             style={{
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '600px',
-              maxHeight: '80%',
-              overflow: 'hidden',
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
               display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            }} 
-          >
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #eee',
-              display: 'flex',
-              justifyContent: 'space-between',
               alignItems: 'center',
-            }}>
-              <s-text font-weight="bold" font-size="large">Selected Products</s-text>
-              <s-button variant="tertiary" onClick={() => setIsModalOpen(false)}>Close</s-button>
-            </div>
-            
-            <div style={{ padding: '20px', overflowY: 'auto', flexGrow: 1 }}>
-              <s-stack direction="block" gap="tight">
-                {products.map((product) => (
-                  <s-box key={product.id} padding="base" borderWidth="base" borderRadius="base">
-                    <s-stack direction="inline" gap="base" align="center">
-                      <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f4f4f4', borderRadius: '4px', overflow: 'hidden' }}>
-                        {product.image ? (
-                          <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <span style={{ fontSize: '10px', color: '#999' }}>No img</span>
-                        )}
-                      </div>
-                      <div style={{ flexGrow: 1 }}>
-                        <s-text font-weight="bold">{product.title || product.handle}</s-text>
-                      </div>
-                      <s-button variant="tertiary" onClick={() => removeProduct(product.id)}>Remove</s-button>
-                    </s-stack>
-                  </s-box>
-                ))}
-              </s-stack>
-            </div>
-            
-            <div style={{
-              padding: '16px 20px',
-              borderTop: '1px solid #eee',
-              display: 'flex',
-              justifyContent: 'flex-end',
-            }}>
-              <s-button variant="primary" onClick={() => setIsModalOpen(false)}>Done</s-button>
+              justifyContent: 'center',
+              zIndex: 1000,
+            }} 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsModalOpen(false);
+            }}
+          >
+            <div 
+              role="dialog"
+              aria-modal="true"
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                width: '90%',
+                maxWidth: '600px',
+                maxHeight: '80%',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }} 
+            >
+              <div style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #eee',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <Text fontWeight="bold" variant="bodyLg">Selected Products</Text>
+                <Button variant="tertiary" onClick={() => setIsModalOpen(false)}>Close</Button>
+              </div>
+              
+              <div style={{ padding: '20px', overflowY: 'auto', flexGrow: 1 }}>
+                <BlockStack gap="300">
+                  {products.map((product) => (
+                    <Box key={product.id} padding="400" borderStyle="solid" borderWidth="025" borderColor="border-secondary" borderRadius="200">
+                      <InlineStack gap="400" align="center">
+                        <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f4f4f4', borderRadius: '4px', overflow: 'hidden' }}>
+                          {product.image ? (
+                            <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <span style={{ fontSize: '10px', color: '#999' }}>No img</span>
+                          )}
+                        </div>
+                        <div style={{ flexGrow: 1 }}>
+                          <Text fontWeight="bold">{product.title || product.handle}</Text>
+                        </div>
+                        <Button variant="tertiary" onClick={() => removeProduct(product.id)}>Remove</Button>
+                      </InlineStack>
+                    </Box>
+                  ))}
+                </BlockStack>
+              </div>
+              
+              <div style={{
+                padding: '16px 20px',
+                borderTop: '1px solid #eee',
+                display: 'flex',
+                justifyContent: 'flex-end',
+              }}>
+                <Button variant="primary" onClick={() => setIsModalOpen(false)}>Done</Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <s-section heading="Discount Tiers">
-        <s-paragraph>Configure the progressive discount rules (Max 5).</s-paragraph>
-        <s-stack direction="block" gap="base">
-          {discounts.map((discount, index) => (
-            <s-box key={index} padding="base" borderWidth="base" borderRadius="base">
-              <s-stack direction="inline" gap="base" align="center">
-                <s-text>Tier {index + 1}:</s-text>
-                <div className="discount-input-row">
-                    <span>If</span>
-                    <input 
-                        type="number" 
-                        value={discount.count} 
-                        onChange={(e) => updateDiscount(index, 'count', e.target.value)}
-                        className="small-input"
-                    />
-                    <span>products, then</span>
-                    <input 
-                        type="number" 
-                        value={discount.percentage} 
-                        onChange={(e) => updateDiscount(index, 'percentage', e.target.value)}
-                        className="small-input"
-                    />
-                    <span>% off</span>
-                </div>
-                <s-button variant="tertiary" onClick={() => removeDiscountTier(index)}>Remove</s-button>
-              </s-stack>
-            </s-box>
-          ))}
-          {discounts.length < 5 && (
-            <s-button onClick={addDiscountTier}>Add Discount Tier</s-button>
-          )}
-        </s-stack>
-      </s-section>
-
-      <style>{`
-        .discount-input-row {
-          display: flex;
-          gap: 10px;
-          align-items: center;
-          flex-grow: 1;
-        }
-        .small-input {
-          width: 60px;
-          padding: 4px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        }
-      `}</style>
-    </s-page>
+        <Card>
+          <BlockStack gap="400">
+            <Text as="h2" variant="headingMd">Discount Tiers</Text>
+            <Text as="p" tone="subdued">Configure the progressive discount rules (Max 5).</Text>
+            <BlockStack gap="300">
+              {discounts.map((discount, index) => (
+                <Box key={index} padding="400" borderStyle="solid" borderWidth="025" borderColor="border-secondary" borderRadius="200">
+                  <InlineStack gap="400" align="center">
+                    <Text>Tier {index + 1}:</Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>If</span>
+                        <input 
+                            type="number" 
+                            value={discount.count} 
+                            onChange={(e) => updateDiscount(index, 'count', e.target.value)}
+                            style={{ width: '60px', padding: '4px' }}
+                        />
+                        <span>products, then</span>
+                        <input 
+                            type="number" 
+                            value={discount.percentage} 
+                            onChange={(e) => updateDiscount(index, 'percentage', e.target.value)}
+                            style={{ width: '60px', padding: '4px' }}
+                        />
+                        <span>% off</span>
+                    </div>
+                    <Button variant="tertiary" onClick={() => removeDiscountTier(index)}>Remove</Button>
+                  </InlineStack>
+                </Box>
+              ))}
+              {discounts.length < 5 && (
+                <Button onClick={addDiscountTier}>Add Discount Tier</Button>
+              )}
+            </BlockStack>
+          </BlockStack>
+        </Card>
+      </BlockStack>
+    </Page>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-router";
+import { Outlet, useLoaderData, useRouteError, useLocation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import enTranslations from "@shopify/polaris/locales/en.json";
@@ -7,7 +7,34 @@ import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
+  const { admin, session, redirect } = await authenticate.admin(request);
+
+  // Check for active subscriptions
+  const response = await admin.graphql(`
+    #graphql
+    query {
+      appInstallation {
+        activeSubscriptions {
+          id
+          status
+        }
+      }
+    }
+  `);
+
+  const responseJson = await response.json();
+  const activeSubscriptions = responseJson.data?.appInstallation?.activeSubscriptions || [];
+
+  // If no ACTIVE subscription is found, redirect to pricing plans
+  const hasActivePlan = activeSubscriptions.some(sub => sub.status === "ACTIVE");
+
+  if (!hasActivePlan) {
+    const storeName = session.shop.split(".")[0];
+    const pricingPlansUrl = `https://admin.shopify.com/store/${storeName}/charges/bundle-builder-84/pricing_plans`;
+    
+    // Use Shopify's redirect to ensure it breaks out of the iframe if needed
+    return redirect(pricingPlansUrl, { target: "_top" });
+  }
 
   // eslint-disable-next-line no-undef
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
@@ -34,47 +61,37 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      <PolarisProvider i18n={enTranslations} linkComponent={Link}>
+      <PolarisProvider i18n={enTranslations}>
         <s-app-nav>
-        <s-link href="/app">Bundle Configuration</s-link>
-        <s-link href="/app/product-bundle">Product Bundle</s-link>
-        <s-link href="/app/volume-discount">Volume Discount</s-link>
-        <s-link href="/app/bxgy">Buy X Get Y</s-link>
-        <s-link href="/app/privacy-policy">Privacy Policy</s-link>
-        <s-link href="/app/contact-us">Contact Us</s-link>
-        <s-link href="/app/faq">FAQ</s-link>
-      </s-app-nav>
-      
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 20px',
-        backgroundColor: '#f6f6f7',
-        borderBottom: '1px solid #e1e3e5',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-      }}>
-        <h1 style={{ fontSize: '16px', fontWeight: '600', margin: 0, color: '#303030' }}>{currentTitle}</h1>
-        {saveAction && (
-          <s-button 
-            variant="primary" 
-            onClick={() => {
-              if (typeof saveAction === 'function') {
-                saveAction();
-              }
-            }}
-            loading={isSaving ? "true" : undefined}
-          >
-            Save Configuration
-          </s-button>
-        )}
-      </div>
+          <s-link href="/app">Bundle Configuration</s-link>
+          <s-link href="/app/product-bundle">Product Bundle</s-link>
+          <s-link href="/app/volume-discount">Volume Discount</s-link>
+          <s-link href="/app/bxgy">Buy X Get Y</s-link>
+          <s-link href="/app/analytics">Analytics</s-link>
+          <s-link href="/app/privacy-policy">Privacy Policy</s-link>
+          <s-link href="/app/contact-us">Contact Us</s-link>
+          <s-link href="/app/faq">FAQ</s-link>
+        </s-app-nav>
+        
+        <ui-title-bar title={currentTitle}>
+          {saveAction && (
+            <button
+              variant="primary"
+              onClick={() => {
+                if (typeof saveAction === 'function') {
+                  saveAction();
+                }
+              }}
+              disabled={isSaving}
+            >
+              Save Configuration
+            </button>
+          )}
+        </ui-title-bar>
 
-      <div style={{ padding: '20px' }}>
-        <Outlet context={{ setSaveAction, setIsSaving }} />
-      </div>
+        <div style={{ padding: '20px' }}>
+          <Outlet context={{ setSaveAction, setIsSaving }} />
+        </div>
       </PolarisProvider>
     </AppProvider>
   );
