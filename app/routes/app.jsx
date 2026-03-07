@@ -62,16 +62,16 @@ export default function App() {
   return (
     <AppProvider embedded apiKey={apiKey}>
       <PolarisProvider i18n={enTranslations}>
-        <s-app-nav>
-          <s-link href="/app">Bundle Configuration</s-link>
-          <s-link href="/app/product-bundle">Product Bundle</s-link>
-          <s-link href="/app/volume-discount">Volume Discount</s-link>
-          <s-link href="/app/bxgy">Buy X Get Y</s-link>
-          <s-link href="/app/analytics">Analytics</s-link>
-          <s-link href="/app/privacy-policy">Privacy Policy</s-link>
-          <s-link href="/app/contact-us">Contact Us</s-link>
-          <s-link href="/app/faq">FAQ</s-link>
-        </s-app-nav>
+        <ui-nav-menu>
+          <a href="/app" rel="home">Bundle Configuration</a>
+          <a href="/app/product-bundle">Product Bundle</a>
+          <a href="/app/volume-discount">Volume Discount</a>
+          <a href="/app/bxgy">Buy X Get Y</a>
+          <a href="/app/analytics">Analytics</a>
+          <a href="/app/privacy-policy">Privacy Policy</a>
+          <a href="/app/contact-us">Contact Us</a>
+          <a href="/app/faq">FAQ</a>
+        </ui-nav-menu>
         
         <ui-title-bar title={currentTitle}>
           {saveAction && (
