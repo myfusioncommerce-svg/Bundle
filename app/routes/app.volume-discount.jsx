@@ -192,75 +192,84 @@ export default function VolumeDiscount() {
   };
 
   return (
-    <s-page>
+    <Page>
       {saveStatus && (
-        <div style={{
-          padding: '12px 16px', borderRadius: '8px', marginBottom: '16px',
-          backgroundColor: saveStatus.type === 'success' ? '#d4edda' : '#f8d7da',
-          color: saveStatus.type === 'success' ? '#155724' : '#721c24',
-          border: `1px solid ${saveStatus.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
-        }}>
-          {saveStatus.message}
-        </div>
+        <Box padding="400">
+           <Text tone={saveStatus.type === 'success' ? 'success' : 'critical'}>{saveStatus.message}</Text>
+        </Box>
       )}
 
-      <s-section heading="Apply to Products">
-        <s-paragraph>Select products that will have volume discount tiers available.</s-paragraph>
-        <s-button onClick={handleSelectProducts}>
-          {products.length > 0 ? "Edit Products" : "Select Products"}
-        </s-button>
-        {products.length > 0 && (
-          <div style={{ marginTop: '16px' }}>
-            <s-stack direction="inline" gap="tight">
-              {products.map(p => (
-                <s-box key={p.id} padding="tight" borderWidth="base" borderRadius="base">
-                  <s-stack direction="inline" gap="tight" align="center">
-                    <img src={p.image} alt="" style={{ width: 24, height: 24, objectFit: 'cover' }} />
-                    <s-text font-size="small">{p.title}</s-text>
-                    <s-button variant="tertiary" onClick={() => removeProduct(p.id)}>×</s-button>
-                  </s-stack>
-                </s-box>
-              ))}
-            </s-stack>
-          </div>
-        )}
-      </s-section>
+      <Layout>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Apply to Products</Text>
+              <Text as="p">Select products that will have volume discount tiers available.</Text>
+              <InlineStack gap="300">
+                <Button onClick={handleSelectProducts}>
+                  {products.length > 0 ? "Edit Products" : "Select Products"}
+                </Button>
+                
+                {products.length > 0 && (
+                  <InlineStack gap="200">
+                    {products.map(p => (
+                      <Box key={p.id} padding="200" borderWidth="025" borderRadius="200" borderColor="border">
+                        <InlineStack gap="400" align="center">
+                          <img src={p.image} alt="" style={{ width: 24, height: 24, objectFit: 'cover' }} />
+                          <Text variant="bodySm">{p.title}</Text>
+                          <Button variant="tertiary" onClick={() => removeProduct(p.id)}>×</Button>
+                        </InlineStack>
+                      </Box>
+                    ))}
+                  </InlineStack>
+                )}
+              </InlineStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
 
-      <s-section heading="Discount Tiers">
-        <s-paragraph>Define how much discount to give based on quantity.</s-paragraph>
-        <s-stack direction="block" gap="base">
-          {discounts.map((discount, index) => (
-            <s-box key={index} padding="base" borderWidth="base" borderRadius="base">
-              <s-stack direction="inline" gap="base" align="center">
-                <s-text>Tier {index + 1}:</s-text>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexGrow: 1 }}>
-                    <span>Buy</span>
-                    <input type="number" value={discount.count} onChange={(e) => updateDiscount(index, 'count', e.target.value)} style={{ width: '60px', padding: '4px' }} />
-                    <span>or more, get</span>
-                    <input type="number" value={discount.percentage} onChange={(e) => updateDiscount(index, 'percentage', e.target.value)} style={{ width: '60px', padding: '4px' }} />
-                    <span>% off</span>
-                </div>
-                <s-button variant="tertiary" onClick={() => setDiscounts(discounts.filter((_, i) => i !== index))}>Remove</s-button>
-              </s-stack>
-            </s-box>
-          ))}
-          {discounts.length < 5 && <s-button onClick={addDiscountTier}>Add Tier</s-button>}
-        </s-stack>
-      </s-section>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Discount Tiers</Text>
+              <Text as="p">Define how much discount to give based on quantity.</Text>
+              <BlockStack gap="400">
+                {discounts.map((discount, index) => (
+                  <Box key={index} padding="400" borderWidth="025" borderRadius="200" borderColor="border">
+                    <InlineStack gap="400" align="center">
+                      <Text>Tier {index + 1}:</Text>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexGrow: 1 }}>
+                          <span>Buy</span>
+                          <input type="number" value={discount.count} onChange={(e) => updateDiscount(index, 'count', e.target.value)} style={{ width: '60px', padding: '4px' }} />
+                          <span>or more, get</span>
+                          <input type="number" value={discount.percentage} onChange={(e) => updateDiscount(index, 'percentage', e.target.value)} style={{ width: '60px', padding: '4px' }} />
+                          <span>% off</span>
+                      </div>
+                      <Button variant="tertiary" onClick={() => setDiscounts(discounts.filter((_, i) => i !== index))}>Remove</Button>
+                    </InlineStack>
+                  </Box>
+                ))}
+                {discounts.length < 5 && <Button onClick={addDiscountTier}>Add Tier</Button>}
+              </BlockStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
 
-      <s-section heading="Theme Integration">
-        <s-box padding="base" borderWidth="base" borderRadius="base">
-          <s-stack direction="block" gap="base">
-            <s-text>Add the Volume Discount block to your product page template in the theme editor.</s-text>
-            <s-button 
-              variant="primary" 
-              onClick={() => window.open(deepLinkUrl, '_blank')}
-            >
-              Add to Store
-            </s-button>
-          </s-stack>
-        </s-box>
-      </s-section>
-    </s-page>
+        <Layout.Section variant="oneThird">
+          <Card>
+            <BlockStack gap="300">
+              <Text variant="headingMd" as="h2">Theme Integration</Text>
+              <Text as="p">Add the Volume Discount block to your product page template in the theme editor.</Text>
+              <Button 
+                variant="primary" 
+                onClick={() => window.open(deepLinkUrl, '_blank')}
+              >
+                Add to Store
+              </Button>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }

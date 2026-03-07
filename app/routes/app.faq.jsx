@@ -1,32 +1,45 @@
+import { Page, Layout, Card, BlockStack, Text, Box } from "@shopify/polaris";
+
 export default function FAQ() {
   return (
-    <s-page>
-      <s-section heading="General">
-        <s-stack direction="block" gap="base">
-          <div>
-            <s-text font-weight="bold">How do I create a bundle?</s-text>
-            <s-paragraph>
-              Navigate to the Bundle Configuration page, select your products, and set your discount tiers.
-            </s-paragraph>
-          </div>
-          <div>
-            <s-text font-weight="bold">Where do the bundles appear?</s-text>
-            <s-paragraph>
-              Bundles appear on the product pages or dedicated bundle pages depending on your configuration.
-            </s-paragraph>
-          </div>
-        </s-stack>
-      </s-section>
-      <s-section heading="Discounts">
-        <s-stack direction="block" gap="base">
-          <div>
-            <s-text font-weight="bold">Can I offer percentage-based discounts?</s-text>
-            <s-paragraph>
-              Yes, you can configure progressive percentage discounts based on the number of items in the bundle.
-            </s-paragraph>
-          </div>
-        </s-stack>
-      </s-section>
-    </s-page>
+    <Page title="Frequently Asked Questions">
+      <Layout>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="500">
+              <Box>
+                <Text variant="headingMd" as="h2">General</Text>
+                <BlockStack gap="400">
+                  <Box>
+                    <Text fontWeight="bold" as="p">How do I create a bundle?</Text>
+                    <Text as="p">
+                      Navigate to the Bundle Configuration page, select your products, and set your discount tiers.
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="bold" as="p">Where do the bundles appear?</Text>
+                    <Text as="p">
+                      Bundles appear on the product pages or dedicated bundle pages depending on your configuration.
+                    </Text>
+                  </Box>
+                </BlockStack>
+              </Box>
+
+              <Box>
+                <Text variant="headingMd" as="h2">Discounts</Text>
+                <BlockStack gap="400">
+                  <Box>
+                    <Text fontWeight="bold" as="p">Can I offer percentage-based discounts?</Text>
+                    <Text as="p">
+                      Yes, you can configure progressive percentage discounts based on the number of items in the bundle.
+                    </Text>
+                  </Box>
+                </BlockStack>
+              </Box>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }

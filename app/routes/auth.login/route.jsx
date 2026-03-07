@@ -1,5 +1,6 @@
+import { Page, Card, TextField, Button, BlockStack, Text, Layout } from "@shopify/polaris";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Form, useActionData, useLoaderData } from "react-router";
 import { login } from "../../shopify.server";
 import { loginErrorMessage } from "./error.server";
@@ -25,26 +26,35 @@ export default function Auth() {
   const loaderData = useLoaderData();
   const actionData = useActionData();
   const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
+  const { errors } = actionData || loaderData || { errors: {} };
+
+  const handleShopChange = useCallback((value) => setShop(value), []);
 
   return (
     <AppProvider embedded={false}>
-      <s-page>
-        <Form method="post">
-          <s-section heading="Log in">
-            <s-text-field
-              name="shop"
-              label="Shop domain"
-              details="example.myshopify.com"
-              value={shop}
-              onChange={(e) => setShop(e.currentTarget.value)}
-              autocomplete="on"
-              error={errors.shop}
-            ></s-text-field>
-            <s-button type="submit">Log in</s-button>
-          </s-section>
-        </Form>
-      </s-page>
+      <Page>
+        <Layout>
+          <Layout.Section>
+            <Card>
+              <Form method="post">
+                <BlockStack gap="400">
+                  <Text variant="headingMd" as="h2">Log in</Text>
+                  <TextField
+                    name="shop"
+                    label="Shop domain"
+                    helpText="example.myshopify.com"
+                    value={shop}
+                    onChange={handleShopChange}
+                    autoComplete="on"
+                    error={errors?.shop}
+                  />
+                  <Button submit variant="primary">Log in</Button>
+                </BlockStack>
+              </Form>
+            </Card>
+          </Layout.Section>
+        </Layout>
+      </Page>
     </AppProvider>
   );
 }

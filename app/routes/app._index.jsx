@@ -413,10 +413,10 @@ export default function Index() {
                   </Button>
                 </InlineStack>
               </BlockStack>
-            </Card>
-          </Layout.Section>
-        </Layout>
-      </Page>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+      </Layout>
 
       <style>{`
         .discount-input-row {
@@ -432,6 +432,6 @@ export default function Index() {
           border-radius: 4px;
         }
       `}</style>
-    </s-page>
+    </Page>
   );
 }

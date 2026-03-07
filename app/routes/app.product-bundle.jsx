@@ -397,6 +397,6 @@ export default function ProductBundle() {
           border-radius: 4px;
         }
       `}</style>
-    </s-page>
+    </Page>
   );
 }
