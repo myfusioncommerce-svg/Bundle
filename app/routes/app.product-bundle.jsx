@@ -1,7 +1,18 @@
 import { useState, useEffect } from "react";
-import { Page, Card, Text, BlockStack, InlineStack, Button, Box } from "@shopify/polaris";
 import { useLoaderData, useSubmit, useActionData, useNavigation, useOutletContext } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import { 
+  Page, 
+  Layout, 
+  Card, 
+  Text, 
+  BlockStack, 
+  InlineStack, 
+  Box, 
+  EmptyState,
+  TextField,
+  Button
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { getBundleConfig, setBundleConfig, createBundleDiscount, deleteBundleDiscount } from "../lib/bundle-utils.js";
 
@@ -226,36 +237,32 @@ export default function ProductBundle() {
 
   return (
     <Page>
-      <BlockStack gap="500">
-        {saveStatus && (
-          <div style={{
-            padding: '12px 16px',
-            borderRadius: '8px',
-            backgroundColor: saveStatus.type === 'success' ? '#d4edda' : '#f8d7da',
-            color: saveStatus.type === 'success' ? '#155724' : '#721c24',
-            border: `1px solid ${saveStatus.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
-          }}>
-            {saveStatus.message}
-          </div>
-        )}
+      {saveStatus && (
+        <Box padding="400">
+           <Text tone={saveStatus.type === 'success' ? 'success' : 'critical'}>{saveStatus.message}</Text>
+        </Box>
+      )}
 
-        <Card>
-          <BlockStack gap="400">
-            <Text as="h2" variant="headingMd">Products</Text>
-            <Text as="p" tone="subdued">Select the products that will be available in the product bundle.</Text>
-            <InlineStack gap="300">
-              <Button onClick={handleSelectProducts}>
-                {products.length > 0 ? "Edit Products" : "Select Products"}
-              </Button>
-              
-              {products.length > 0 && (
-                <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
-                  View Selected ({products.length})
+      <Layout>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Products</Text>
+              <Text as="p">Select the products that will be available in the product bundle.</Text>
+              <InlineStack gap="300">
+                <Button onClick={handleSelectProducts}>
+                  {products.length > 0 ? "Edit Products" : "Select Products"}
                 </Button>
-              )}
-            </InlineStack>
-          </BlockStack>
-        </Card>
+                
+                {products.length > 0 && (
+                  <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
+                    View Selected ({products.length})
+                  </Button>
+                )}
+              </InlineStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
 
         {isModalOpen && (
           <div 
@@ -298,14 +305,14 @@ export default function ProductBundle() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}>
-                <Text fontWeight="bold" variant="bodyLg">Selected Products</Text>
+                <Text variant="headingMd" as="h2">Selected Products</Text>
                 <Button variant="tertiary" onClick={() => setIsModalOpen(false)}>Close</Button>
               </div>
               
               <div style={{ padding: '20px', overflowY: 'auto', flexGrow: 1 }}>
                 <BlockStack gap="300">
                   {products.map((product) => (
-                    <Box key={product.id} padding="400" borderStyle="solid" borderWidth="025" borderColor="border-secondary" borderRadius="200">
+                    <Box key={product.id} padding="400" borderWidth="025" borderRadius="200" borderColor="border">
                       <InlineStack gap="400" align="center">
                         <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f4f4f4', borderRadius: '4px', overflow: 'hidden' }}>
                           {product.image ? (
@@ -336,43 +343,60 @@ export default function ProductBundle() {
           </div>
         )}
 
-        <Card>
-          <BlockStack gap="400">
-            <Text as="h2" variant="headingMd">Discount Tiers</Text>
-            <Text as="p" tone="subdued">Configure the progressive discount rules (Max 5).</Text>
-            <BlockStack gap="300">
-              {discounts.map((discount, index) => (
-                <Box key={index} padding="400" borderStyle="solid" borderWidth="025" borderColor="border-secondary" borderRadius="200">
-                  <InlineStack gap="400" align="center">
-                    <Text>Tier {index + 1}:</Text>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>If</span>
-                        <input 
-                            type="number" 
-                            value={discount.count} 
-                            onChange={(e) => updateDiscount(index, 'count', e.target.value)}
-                            style={{ width: '60px', padding: '4px' }}
-                        />
-                        <span>products, then</span>
-                        <input 
-                            type="number" 
-                            value={discount.percentage} 
-                            onChange={(e) => updateDiscount(index, 'percentage', e.target.value)}
-                            style={{ width: '60px', padding: '4px' }}
-                        />
-                        <span>% off</span>
-                    </div>
-                    <Button variant="tertiary" onClick={() => removeDiscountTier(index)}>Remove</Button>
-                  </InlineStack>
-                </Box>
-              ))}
-              {discounts.length < 5 && (
-                <Button onClick={addDiscountTier}>Add Discount Tier</Button>
-              )}
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Discount Tiers</Text>
+              <Text as="p">Configure the progressive discount rules (Max 5).</Text>
+              <BlockStack gap="300">
+                {discounts.map((discount, index) => (
+                  <Box key={index} padding="400" borderWidth="025" borderRadius="200" borderColor="border">
+                    <InlineStack gap="400" align="center">
+                      <Text>Tier {index + 1}:</Text>
+                      <div className="discount-input-row">
+                          <Text>If</Text>
+                          <input 
+                              type="number" 
+                              value={discount.count} 
+                              onChange={(e) => updateDiscount(index, 'count', e.target.value)}
+                              className="small-input"
+                          />
+                          <Text>products, then</Text>
+                          <input 
+                              type="number" 
+                              value={discount.percentage} 
+                              onChange={(e) => updateDiscount(index, 'percentage', e.target.value)}
+                              className="small-input"
+                          />
+                          <Text>% off</Text>
+                      </div>
+                      <Button variant="tertiary" onClick={() => removeDiscountTier(index)}>Remove</Button>
+                    </InlineStack>
+                  </Box>
+                ))}
+                {discounts.length < 5 && (
+                  <Button onClick={addDiscountTier}>Add Discount Tier</Button>
+                )}
+              </BlockStack>
             </BlockStack>
-          </BlockStack>
-        </Card>
-      </BlockStack>
-    </Page>
+          </Card>
+        </Layout.Section>
+      </Layout>
+
+      <style>{`
+        .discount-input-row {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          flex-grow: 1;
+        }
+        .small-input {
+          width: 60px;
+          padding: 4px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+      `}</style>
+    </s-page>
   );
 }

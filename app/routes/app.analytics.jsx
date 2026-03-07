@@ -1,4 +1,14 @@
 import { useLoaderData } from "react-router";
+import { 
+  Page, 
+  Layout, 
+  Card, 
+  Text, 
+  BlockStack, 
+  InlineStack, 
+  Box, 
+  DataTable 
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
@@ -82,99 +92,92 @@ export default function Analytics() {
   const { bundleOrders, stats } = useLoaderData();
 
   return (
-    <s-page>
-      <s-layout>
-        <s-layout-section>
-          <s-stack direction="inline" gap="base" distribution="fill">
-            <s-box padding="base" borderWidth="base" borderRadius="base">
-              <s-stack direction="block" gap="tight" align="center">
-                <s-text font-size="small" color="subdued">Total Bundle Orders</s-text>
-                <s-text font-weight="bold" font-size="extra-large">{stats.orderCount}</s-text>
-              </s-stack>
-            </s-box>
-            <s-box padding="base" borderWidth="base" borderRadius="base">
-              <s-stack direction="block" gap="tight" align="center">
-                <s-text font-size="small" color="subdued">Total Bundle Sales</s-text>
-                <s-text font-weight="bold" font-size="extra-large">
+    <Page title="Analytics">
+      <Layout>
+        <Layout.Section>
+          <InlineStack gap="400">
+            <Box padding="400" borderWidth="025" borderRadius="200" borderColor="border" minWidth="200px">
+              <BlockStack gap="100" align="center">
+                <Text variant="bodySm" tone="subdued">Total Bundle Orders</Text>
+                <Text variant="headingXl" as="p">{stats.orderCount}</Text>
+              </BlockStack>
+            </Box>
+            <Box padding="400" borderWidth="025" borderRadius="200" borderColor="border" minWidth="200px">
+              <BlockStack gap="100" align="center">
+                <Text variant="bodySm" tone="subdued">Total Bundle Sales</Text>
+                <Text variant="headingXl" as="p">
                   {new Intl.NumberFormat(undefined, { style: 'currency', currency: bundleOrders[0]?.currency || 'USD' }).format(stats.totalSales)}
-                </s-text>
-              </s-stack>
-            </s-box>
-            <s-box padding="base" borderWidth="base" borderRadius="base">
-              <s-stack direction="block" gap="tight" align="center">
-                <s-text font-size="small" color="subdued">Total Discounts Given</s-text>
-                <s-text font-weight="bold" font-size="extra-large" color="critical">
+                </Text>
+              </BlockStack>
+            </Box>
+            <Box padding="400" borderWidth="025" borderRadius="200" borderColor="border" minWidth="200px">
+              <BlockStack gap="100" align="center">
+                <Text variant="bodySm" tone="subdued">Total Discounts Given</Text>
+                <Text variant="headingXl" as="p" tone="critical">
                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: bundleOrders[0]?.currency || 'USD' }).format(stats.totalDiscounts)}
-                </s-text>
-              </s-stack>
-            </s-box>
-          </s-stack>
-        </s-layout-section>
+                </Text>
+              </BlockStack>
+            </Box>
+          </InlineStack>
+        </Layout.Section>
 
-        <s-layout-section>
-          <s-section heading="Bundle Type Breakdown">
-            <s-stack direction="inline" gap="base" distribution="fill">
-              <s-box padding="base" borderWidth="base" borderRadius="base">
-                <s-stack direction="block" gap="tight" align="center">
-                  <s-text font-size="small">Bundle Builder</s-text>
-                  <s-text font-weight="bold">{stats.typeBreakdown.bundleBuilder} orders</s-text>
-                </s-stack>
-              </s-box>
-              <s-box padding="base" borderWidth="base" borderRadius="base">
-                <s-stack direction="block" gap="tight" align="center">
-                  <s-text font-size="small">Product Bundle</s-text>
-                  <s-text font-weight="bold">{stats.typeBreakdown.productBundle} orders</s-text>
-                </s-stack>
-              </s-box>
-              <s-box padding="base" borderWidth="base" borderRadius="base">
-                <s-stack direction="block" gap="tight" align="center">
-                  <s-text font-size="small">Volume Discount</s-text>
-                  <s-text font-weight="bold">{stats.typeBreakdown.volumeDiscount} orders</s-text>
-                </s-stack>
-              </s-box>
-              <s-box padding="base" borderWidth="base" borderRadius="base">
-                <s-stack direction="block" gap="tight" align="center">
-                  <s-text font-size="small">Buy X Get Y</s-text>
-                  <s-text font-weight="bold">{stats.typeBreakdown.bxgy} orders</s-text>
-                </s-stack>
-              </s-box>
-            </s-stack>
-          </s-section>
-        </s-layout-section>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Bundle Type Breakdown</Text>
+              <InlineStack gap="400">
+                <Box padding="400" borderWidth="025" borderRadius="200" borderColor="border">
+                  <BlockStack gap="100" align="center">
+                    <Text variant="bodySm">Bundle Builder</Text>
+                    <Text fontWeight="bold">{stats.typeBreakdown.bundleBuilder} orders</Text>
+                  </BlockStack>
+                </Box>
+                <Box padding="400" borderWidth="025" borderRadius="200" borderColor="border">
+                  <BlockStack gap="100" align="center">
+                    <Text variant="bodySm">Product Bundle</Text>
+                    <Text fontWeight="bold">{stats.typeBreakdown.productBundle} orders</Text>
+                  </BlockStack>
+                </Box>
+                <Box padding="400" borderWidth="025" borderRadius="200" borderColor="border">
+                  <BlockStack gap="100" align="center">
+                    <Text variant="bodySm">Volume Discount</Text>
+                    <Text fontWeight="bold">{stats.typeBreakdown.volumeDiscount} orders</Text>
+                  </BlockStack>
+                </Box>
+                <Box padding="400" borderWidth="025" borderRadius="200" borderColor="border">
+                  <BlockStack gap="100" align="center">
+                    <Text variant="bodySm">Buy X Get Y</Text>
+                    <Text fontWeight="bold">{stats.typeBreakdown.bxgy} orders</Text>
+                  </BlockStack>
+                </Box>
+              </InlineStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
 
-        <s-layout-section>
-          <s-section heading="Recent Bundle Orders">
-            {bundleOrders.length === 0 ? (
-              <s-paragraph>No bundle orders found yet. Keep building those bundles!</s-paragraph>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #eee', textAlign: 'left' }}>
-                    <th style={{ padding: '12px 8px' }}>Order</th>
-                    <th style={{ padding: '12px 8px' }}>Date</th>
-                    <th style={{ padding: '12px 8px' }}>Discount Code</th>
-                    <th style={{ padding: '12px 8px' }}>Discount</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'right' }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bundleOrders.map((order) => (
-                    <tr key={order.id} style={{ borderBottom: '1px solid #f9f9f9' }}>
-                      <td style={{ padding: '12px 8px' }}>{order.name}</td>
-                      <td style={{ padding: '12px 8px' }}>{new Date(order.date).toLocaleDateString()}</td>
-                      <td style={{ padding: '12px 8px' }}><code>{order.discountCode}</code></td>
-                      <td style={{ padding: '12px 8px' }}>{new Intl.NumberFormat(undefined, { style: 'currency', currency: order.currency }).format(order.discountAmount)}</td>
-                      <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 'bold' }}>
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: order.currency }).format(order.total)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </s-section>
-        </s-layout-section>
-      </s-layout>
-    </s-page>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Recent Bundle Orders</Text>
+              {bundleOrders.length === 0 ? (
+                <Text as="p">No bundle orders found yet. Keep building those bundles!</Text>
+              ) : (
+                <DataTable
+                  columnContentTypes={['text', 'text', 'text', 'numeric', 'numeric']}
+                  headings={['Order', 'Date', 'Discount Code', 'Discount', 'Total']}
+                  rows={bundleOrders.map(order => [
+                    order.name,
+                    new Date(order.date).toLocaleDateString(),
+                    order.discountCode,
+                    new Intl.NumberFormat(undefined, { style: 'currency', currency: order.currency }).format(order.discountAmount),
+                    new Intl.NumberFormat(undefined, { style: 'currency', currency: order.currency }).format(order.total)
+                  ])}
+                />
+              )}
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
