@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-router";
+import { Outlet, useLoaderData, useRouteError, useLocation, Link, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
@@ -33,7 +33,7 @@ export const loader = async ({ request }) => {
     if (!hasActivePlan && session.shop !== "dev-store-749237498237499013.myshopify.com") {
       const storeName = session.shop.split(".")[0];
       const pricingPlansUrl = `https://admin.shopify.com/store/${storeName}/charges/bundle-builder-84/pricing_plans`;
-      return boundary.redirect(pricingPlansUrl, { target: "_top" });
+      return redirect(pricingPlansUrl, { target: "_top" });
     }
   } catch (error) {
     console.error("Error checking subscriptions:", error);
