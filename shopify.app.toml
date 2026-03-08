@@ -2,7 +2,7 @@
 
 client_id = "a556b982b72af329f9965df4922e2761"
 name = "Fusion Upsell Bundle"
-application_url = "https://bundle-o3o3.onrender.com"
+application_url = "https://bundle-am3e.onrender.com"
 embedded = true
 
 [build]
@@ -28,5 +28,5 @@ api_version = "2024-07"
 scopes = "write_products,write_discounts,read_orders"
 
 [auth]
-redirect_urls = [ "https://bundle-o3o3.onrender.com/api/auth" ]
+redirect_urls = [ "https://bundle-am3e.onrender.com/api/auth" ]
 
