@@ -29,44 +29,9 @@ export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
 
-  // Check for active subscriptions
-  try {
-    const response = await admin.graphql(`
-      #graphql
-      query {
-        appInstallation {
-          activeSubscriptions {
-            id
-            status
-          }
-        }
-      }
-    `);
-
-    const responseJson = await response.json();
-    const activeSubscriptions = responseJson.data?.appInstallation?.activeSubscriptions || [];
-    const hasActivePlan = activeSubscriptions.some(sub => sub.status === "ACTIVE");
-
-    const whitelistedShops = [
-      "dev-store-749237498237499013.myshopify.com",
-      "testerssssss345.myshopify.com",
-      "kvkfb-b.myshopify.com",
-      "devtrertyt.myshopify.com",
-      "multi-store-demo-store.myshopify.com"
-    ];
-
-    if (!hasActivePlan && !whitelistedShops.includes(session.shop)) {
-      const storeName = session.shop.split(".")[0];
-      const pricingPlansUrl = `https://admin.shopify.com/store/${storeName}/charges/bundle-builder-84/pricing_plans`;
-      return shopify.redirect(request, pricingPlansUrl);
-    }
-  } catch (error) {
-    console.error("Error checking subscriptions:", error);
-  }
-
   return { 
     apiKey: process.env.SHOPIFY_API_KEY || "",
-    host: url.searchParams.get("host") || url.searchParams.get("shop") ? btoa(`admin.shopify.com/store/${url.searchParams.get("shop").split(".")[0]}`) : ""
+    host: url.searchParams.get("host") || ""
   };
 };
 
@@ -78,8 +43,10 @@ export default function App() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (apiKey && host) {
+      setIsClient(true);
+    }
+  }, [apiKey, host]);
 
   const titles = {
     "/app": "Bundle Configuration",
@@ -98,15 +65,17 @@ export default function App() {
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
       <PolarisProvider i18n={enTranslations} linkComponent={Link}>
-        <TitleBar 
-          title={currentTitle}
-          primaryAction={saveAction ? {
-            content: "Save Configuration",
-            onAction: saveAction,
-            disabled: isSaving,
-            variant: "primary"
-          } : undefined}
-        />
+        <TitleBar title={currentTitle}>
+          {isClient && saveAction && (
+            <button 
+              variant="primary" 
+              onClick={saveAction}
+              disabled={isSaving}
+            >
+              Save Configuration
+            </button>
+          )}
+        </TitleBar>
         {isClient && (
           <ui-nav-menu>
             <Link to="/app" rel="home">Bundle Configuration</Link>
