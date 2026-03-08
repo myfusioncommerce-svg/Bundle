@@ -13,7 +13,7 @@ RUN npm ci && npm cache clean --force
 
 COPY . .
 
-RUN npm run build
+RUN SHOPIFY_APP_URL=https://dummy.com npm run build
 
 RUN npm prune --omit=dev
 
