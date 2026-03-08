@@ -1,4 +1,4 @@
-a0614decc530d419c27a8e145e25f0ae10335c8fFROM node:20-alpine
+FROM node:20-alpine
 RUN apk add --no-cache openssl
 
 EXPOSE 3000
@@ -9,10 +9,12 @@ ENV NODE_ENV=production
 
 COPY package.json package-lock.json* ./
 
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --include=dev && npm cache clean --force
 
 COPY . .
 
 RUN npm run build
+
+RUN npm prune --omit=dev
 
 CMD ["npm", "run", "docker-start"]
