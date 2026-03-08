@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, useLoaderData, useRouteError, useLocation, Link, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import shopify from "../shopify.server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
 import enTranslations from "@shopify/polaris/locales/en.json";
@@ -12,6 +13,7 @@ export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
 
+  /* 
   // Check for active subscriptions
   try {
     const response = await admin.graphql(`
@@ -30,14 +32,22 @@ export const loader = async ({ request }) => {
     const activeSubscriptions = responseJson.data?.appInstallation?.activeSubscriptions || [];
     const hasActivePlan = activeSubscriptions.some(sub => sub.status === "ACTIVE");
 
-    if (!hasActivePlan && session.shop !== "dev-store-749237498237499013.myshopify.com") {
+    const whitelistedShops = [
+      "dev-store-749237498237499013.myshopify.com",
+      "testerssssss345.myshopify.com",
+      "kvkfb-b.myshopify.com",
+      "devtrertyt.myshopify.com"
+    ];
+
+    if (!hasActivePlan && !whitelistedShops.includes(session.shop)) {
       const storeName = session.shop.split(".")[0];
       const pricingPlansUrl = `https://admin.shopify.com/store/${storeName}/charges/bundle-builder-84/pricing_plans`;
-      return redirect(pricingPlansUrl, { target: "_top" });
+      return shopify.redirect(request, pricingPlansUrl);
     }
   } catch (error) {
     console.error("Error checking subscriptions:", error);
   }
+  */
 
   return { 
     apiKey: process.env.SHOPIFY_API_KEY || "",
@@ -74,34 +84,32 @@ export default function App() {
     <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
       <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
       <PolarisProvider i18n={enTranslations} linkComponent={Link}>
+        <TitleBar title={currentTitle}>
+          {saveAction && (
+            <button 
+              variant="primary" 
+              onClick={saveAction}
+              disabled={isSaving}
+            >
+              Save Configuration
+            </button>
+          )}
+        </TitleBar>
         {isClient && (
-          <>
-            <TitleBar title={currentTitle}>
-              {saveAction && (
-                <button 
-                  variant="primary" 
-                  onClick={saveAction}
-                  disabled={isSaving}
-                >
-                  Save Configuration
-                </button>
-              )}
-            </TitleBar>
-            <ui-nav-menu>
-              <Link to="/app" rel="home">Bundle Configuration</Link>
-              <Link to="/app/product-bundle">Product Bundle</Link>
-              <Link to="/app/volume-discount">Volume Discount</Link>
-              <Link to="/app/bxgy">Buy X Get Y</Link>
-              <Link to="/app/analytics">Analytics</Link>
-              <Link to="/app/privacy-policy">Privacy Policy</Link>
-              <Link to="/app/contact-us">Contact Us</Link>
-              <Link to="/app/faq">FAQ</Link>
-            </ui-nav-menu>
-            <div style={{ padding: '20px' }}>
-              <Outlet context={{ setSaveAction, setIsSaving }} />
-            </div>
-          </>
+          <ui-nav-menu>
+            <Link to="/app" rel="home">Bundle Configuration</Link>
+            <Link to="/app/product-bundle">Product Bundle</Link>
+            <Link to="/app/volume-discount">Volume Discount</Link>
+            <Link to="/app/bxgy">Buy X Get Y</Link>
+            <Link to="/app/analytics">Analytics</Link>
+            <Link to="/app/privacy-policy">Privacy Policy</Link>
+            <Link to="/app/contact-us">Contact Us</Link>
+            <Link to="/app/faq">FAQ</Link>
+          </ui-nav-menu>
         )}
+        <div style={{ padding: '20px' }}>
+          <Outlet context={{ setSaveAction, setIsSaving }} />
+        </div>
       </PolarisProvider>
     </AppProvider>
   );
