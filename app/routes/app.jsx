@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Outlet, useLoaderData, useRouteError, useLocation, Link, redirect } from "react-router";
-import { boundary } from "@shopify/shopify-app-react-router/server";
-import shopify from "../shopify.server";
+import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-router";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
+import { AppProvider } from "@shopify/shopify-app-react-router/react";
+import { TitleBar } from "@shopify/app-bridge-react";
+import { authenticate } from "../shopify.server";
 
 const enTranslations = {
   Polaris: {
@@ -20,10 +21,6 @@ const enTranslations = {
     },
   },
 };
-
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { TitleBar } from "@shopify/app-bridge-react";
-import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
@@ -43,10 +40,8 @@ export default function App() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (apiKey && host) {
-      setIsClient(true);
-    }
-  }, [apiKey, host]);
+    setIsClient(true);
+  }, []);
 
   const titles = {
     "/app": "Bundle Configuration",
@@ -109,5 +104,5 @@ export function ErrorBoundary() {
 }
 
 export const headers = (headersArgs) => {
-  return boundary.headers(headersArgs);
+  return { "Cache-Control": "no-store" };
 };
