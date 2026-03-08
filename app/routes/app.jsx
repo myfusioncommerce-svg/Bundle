@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
+import "@shopify/polaris/build/esm/styles.css";
 import enTranslations from "@shopify/polaris/locales/en.json";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { TitleBar } from "@shopify/app-bridge-react";
@@ -96,12 +97,11 @@ export default function App() {
               <Link to="/app/contact-us">Contact Us</Link>
               <Link to="/app/faq">FAQ</Link>
             </ui-nav-menu>
+            <div style={{ padding: '20px' }}>
+              <Outlet context={{ setSaveAction, setIsSaving }} />
+            </div>
           </>
         )}
-      
-      <div style={{ padding: '20px' }}>
-        <Outlet context={{ setSaveAction, setIsSaving }} />
-      </div>
       </PolarisProvider>
     </AppProvider>
   );
