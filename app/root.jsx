@@ -14,6 +14,7 @@ export default function App() {
         />
         <Meta />
         <Links />
+        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
       </head>
       <body>
         <Outlet />

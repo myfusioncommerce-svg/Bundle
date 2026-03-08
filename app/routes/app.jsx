@@ -4,7 +4,23 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import shopify from "../shopify.server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
-import enTranslations from "@shopify/polaris/locales/en.json";
+
+const enTranslations = {
+  Polaris: {
+    ResourceList: {
+      sortingLabel: "Sort by",
+      defaultSortingLabel: "Default",
+      showing: "Showing {itemsCount} {resource}",
+      item: {
+        viewItem: "View details for {accessibilityLabel}",
+      },
+    },
+    Common: {
+      checkbox: "checkbox",
+    },
+  },
+};
+
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
@@ -13,7 +29,6 @@ export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
 
-  /* 
   // Check for active subscriptions
   try {
     const response = await admin.graphql(`
@@ -36,7 +51,8 @@ export const loader = async ({ request }) => {
       "dev-store-749237498237499013.myshopify.com",
       "testerssssss345.myshopify.com",
       "kvkfb-b.myshopify.com",
-      "devtrertyt.myshopify.com"
+      "devtrertyt.myshopify.com",
+      "multi-store-demo-store.myshopify.com"
     ];
 
     if (!hasActivePlan && !whitelistedShops.includes(session.shop)) {
@@ -47,11 +63,10 @@ export const loader = async ({ request }) => {
   } catch (error) {
     console.error("Error checking subscriptions:", error);
   }
-  */
 
   return { 
     apiKey: process.env.SHOPIFY_API_KEY || "",
-    host: url.searchParams.get("host") || ""
+    host: url.searchParams.get("host") || url.searchParams.get("shop") ? btoa(`admin.shopify.com/store/${url.searchParams.get("shop").split(".")[0]}`) : ""
   };
 };
 
@@ -82,19 +97,16 @@ export default function App() {
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
-      <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
       <PolarisProvider i18n={enTranslations} linkComponent={Link}>
-        <TitleBar title={currentTitle}>
-          {saveAction && (
-            <button 
-              variant="primary" 
-              onClick={saveAction}
-              disabled={isSaving}
-            >
-              Save Configuration
-            </button>
-          )}
-        </TitleBar>
+        <TitleBar 
+          title={currentTitle}
+          primaryAction={saveAction ? {
+            content: "Save Configuration",
+            onAction: saveAction,
+            disabled: isSaving,
+            variant: "primary"
+          } : undefined}
+        />
         {isClient && (
           <ui-nav-menu>
             <Link to="/app" rel="home">Bundle Configuration</Link>
