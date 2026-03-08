@@ -1,21 +1,59 @@
-import { useState } from "react";
-import { Outlet, useLoaderData, useRouteError, useLocation } from "react-router";
+import { useState, useEffect } from "react";
+import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { AppProvider as PolarisProvider } from "@shopify/polaris";
+import enTranslations from "@shopify/polaris/locales/en.json";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
+import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
+  const url = new URL(request.url);
 
-  // eslint-disable-next-line no-undef
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  // Check for active subscriptions
+  try {
+    const response = await admin.graphql(`
+      #graphql
+      query {
+        appInstallation {
+          activeSubscriptions {
+            id
+            status
+          }
+        }
+      }
+    `);
+
+    const responseJson = await response.json();
+    const activeSubscriptions = responseJson.data?.appInstallation?.activeSubscriptions || [];
+    const hasActivePlan = activeSubscriptions.some(sub => sub.status === "ACTIVE");
+
+    if (!hasActivePlan && session.shop !== "dev-store-749237498237499013.myshopify.com") {
+      const storeName = session.shop.split(".")[0];
+      const pricingPlansUrl = `https://admin.shopify.com/store/${storeName}/charges/bundle-builder-84/pricing_plans`;
+      return boundary.redirect(pricingPlansUrl, { target: "_top" });
+    }
+  } catch (error) {
+    console.error("Error checking subscriptions:", error);
+  }
+
+  return { 
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    host: url.searchParams.get("host") || ""
+  };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const { apiKey, host } = useLoaderData();
   const location = useLocation();
   const [saveAction, setSaveAction] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const titles = {
     "/app": "Bundle Configuration",
@@ -28,57 +66,57 @@ export default function App() {
     "/app/faq": "FAQ",
   };
 
-  const currentTitle = titles[location.pathname] || "Bundle Builder";
+  const normalizedPath = location.pathname.replace(/\/$/, "") || "/app";
+  const currentTitle = titles[normalizedPath] || "Bundle Builder";
 
   return (
-    <AppProvider embedded apiKey={apiKey}>
-      <s-app-nav>
-        <s-link href="/app">Bundle Configuration</s-link>
-        <s-link href="/app/product-bundle">Product Bundle</s-link>
-        <s-link href="/app/volume-discount">Volume Discount</s-link>
-        <s-link href="/app/bxgy">Buy X Get Y</s-link>
-        <s-link href="/app/privacy-policy">Privacy Policy</s-link>
-        <s-link href="/app/contact-us">Contact Us</s-link>
-        <s-link href="/app/faq">FAQ</s-link>
-      </s-app-nav>
-      
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 20px',
-        backgroundColor: '#f6f6f7',
-        borderBottom: '1px solid #e1e3e5',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-      }}>
-        <h1 style={{ fontSize: '16px', fontWeight: '600', margin: 0, color: '#303030' }}>{currentTitle}</h1>
-        {saveAction && (
-          <s-button 
-            variant="primary" 
-            onClick={() => {
-              if (typeof saveAction === 'function') {
-                saveAction();
-              }
-            }}
-            loading={isSaving ? "true" : undefined}
-          >
-            Save Configuration
-          </s-button>
+    <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
+      <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+      <PolarisProvider i18n={enTranslations} linkComponent={Link}>
+        {isClient && (
+          <>
+            <TitleBar title={currentTitle}>
+              {saveAction && (
+                <button 
+                  variant="primary" 
+                  onClick={saveAction}
+                  disabled={isSaving}
+                >
+                  Save Configuration
+                </button>
+              )}
+            </TitleBar>
+            <ui-nav-menu>
+              <Link to="/app" rel="home">Bundle Configuration</Link>
+              <Link to="/app/product-bundle">Product Bundle</Link>
+              <Link to="/app/volume-discount">Volume Discount</Link>
+              <Link to="/app/bxgy">Buy X Get Y</Link>
+              <Link to="/app/analytics">Analytics</Link>
+              <Link to="/app/privacy-policy">Privacy Policy</Link>
+              <Link to="/app/contact-us">Contact Us</Link>
+              <Link to="/app/faq">FAQ</Link>
+            </ui-nav-menu>
+          </>
         )}
-      </div>
-
+      
       <div style={{ padding: '20px' }}>
         <Outlet context={{ setSaveAction, setIsSaving }} />
       </div>
+      </PolarisProvider>
     </AppProvider>
   );
 }
 
-// Shopify needs React Router to catch some thrown responses, so that their headers are included in the response.
 export function ErrorBoundary() {
-  return boundary.error(useRouteError());
+  const error = useRouteError();
+  return (
+    <PolarisProvider i18n={enTranslations}>
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>App Error</h1>
+        <p style={{ color: '#666' }}>{error?.message || "An unexpected error occurred."}</p>
+      </div>
+    </PolarisProvider>
+  );
 }
 
 export const headers = (headersArgs) => {

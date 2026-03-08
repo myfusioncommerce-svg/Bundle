@@ -1,6 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { useLoaderData, useSubmit, useActionData, useNavigation, useOutletContext } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import { 
+  Page, 
+  Layout, 
+  Card, 
+  Text, 
+  BlockStack, 
+  InlineStack, 
+  Box, 
+  Button,
+  RadioButton,
+  TextField,
+  EmptyState
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { getBundleConfig, setBundleConfig, createBXGYDiscount } from "../lib/bundle-utils.js";
 
@@ -10,7 +23,6 @@ export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const savedConfig = await getBundleConfig(admin.graphql, METAFIELD_KEY);
   
-  // Ensure we always return an array
   const bundles = Array.isArray(savedConfig) ? savedConfig : (savedConfig ? [savedConfig] : []);
   
   return {
@@ -28,7 +40,6 @@ export const action = async ({ request }) => {
   let discountError = null;
 
   if (success) {
-    // For BXGY, we'll try to create/update all discounts
     for (const bundle of bundles) {
       const result = await createBXGYDiscount(admin, bundle);
       if (!result.success) {
@@ -49,7 +60,12 @@ export default function BXGYConfig() {
   const { setSaveAction, setIsSaving } = useOutletContext();
 
   const [bundles, setBundles] = useState(initialBundles);
-  const [editingIndex, setEditingIndex] = useState(null); // null means list view, -1 means new, 0+ means edit
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (editingIndex === null) {
@@ -107,24 +123,30 @@ export default function BXGYConfig() {
   };
 
   const selectProducts = async (field, currentBundle, setLocalBundle) => {
-    const selected = await shopify.resourcePicker({
-      type: "product",
-      multiple: true,
-      selectionIds: currentBundle[field].map(p => ({ id: p.id }))
-    });
-
-    if (selected) {
-      setLocalBundle({
-        ...currentBundle,
-        [field]: selected.map(p => ({
-          id: p.id,
-          handle: p.handle,
-          title: p.title,
-          image: p.images?.[0]?.originalSrc || p.featuredImage?.url
-        }))
+    try {
+      const selected = await shopify.resourcePicker({
+        type: "product",
+        multiple: true,
+        selectionIds: currentBundle[field].map(p => ({ id: p.id }))
       });
+
+      if (selected) {
+        setLocalBundle({
+          ...currentBundle,
+          [field]: selected.map(p => ({
+            id: p.id,
+            handle: p.handle,
+            title: p.title,
+            image: p.images?.[0]?.originalSrc || p.featuredImage?.url
+          }))
+        });
+      }
+    } catch (error) {
+      console.error("Resource picker error:", error);
     }
   };
+
+  if (!isClient) return null;
 
   if (editingIndex !== null) {
     return (
@@ -139,55 +161,64 @@ export default function BXGYConfig() {
   }
 
   return (
-    <s-page>
-      <s-layout>
-        <s-layout-section>
-          <s-stack direction="block" gap="base">
-            <s-box>
-              <s-button variant="primary" onClick={handleAddBundle}>
+    <Page title="Buy X Get Y Bundles">
+      <Layout>
+        <Layout.Section>
+          <BlockStack gap="400">
+            <Box>
+              <Button variant="primary" onClick={handleAddBundle}>
                 Create New Bundle
-              </s-button>
-            </s-box>
+              </Button>
+            </Box>
 
             {bundles.length === 0 ? (
-              <s-box padding="base" borderWidth="base" borderRadius="base" style={{ textAlign: 'center' }}>
-                <s-paragraph>No BXGY bundles created yet. Click "Create New Bundle" to start.</s-paragraph>
-              </s-box>
+              <Card>
+                <EmptyState
+                  heading="No BXGY bundles created yet"
+                  action={{ content: 'Create New Bundle', onAction: handleAddBundle }}
+                  image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+                >
+                  <p>Click "Create New Bundle" to start building your first Buy X Get Y offer.</p>
+                </EmptyState>
+              </Card>
             ) : (
-              <s-stack direction="block" gap="base">
+              <BlockStack gap="400">
                 {bundles.map((bundle, index) => (
-                  <s-box key={bundle.id || index} padding="base" borderWidth="base" borderRadius="base">
-                    <s-stack direction="inline" distribution="equal-spacing" align="center">
-                      <s-stack direction="block" gap="tight">
-                        <s-text font-weight="bold">
+                  <Card key={bundle.id || index}>
+                    <InlineStack align="space-between" blockAlign="center">
+                      <BlockStack gap="100">
+                        <Text fontWeight="bold">
                           Buy {bundle.buyCount} get {bundle.getCount} {bundle.discountType === 'free' ? 'FREE' : `${bundle.discountValue}% off`}
-                        </s-text>
-                        <s-text font-size="small" color="subdued">
+                        </Text>
+                        <Text variant="bodySm" tone="subdued">
                           {bundle.buyProducts.length} Buy products • {bundle.getProducts.length} Get products
-                        </s-text>
-                      </s-stack>
-                      <s-stack direction="inline" gap="tight">
-                        <s-button onClick={() => setEditingIndex(index)}>Edit</s-button>
-                        <s-button variant="critical" onClick={() => handleDeleteBundle(index)}>Delete</s-button>
-                      </s-stack>
-                    </s-stack>
-                  </s-box>
+                        </Text>
+                      </BlockStack>
+                      <InlineStack gap="200">
+                        <Button onClick={() => setEditingIndex(index)}>Edit</Button>
+                        <Button variant="tertiary" tone="critical" onClick={() => handleDeleteBundle(index)}>Delete</Button>
+                      </InlineStack>
+                    </InlineStack>
+                  </Card>
                 ))}
-              </s-stack>
+              </BlockStack>
             )}
-          </s-stack>
-        </s-layout-section>
+          </BlockStack>
+        </Layout.Section>
 
-        <s-layout-section secondary>
-          <s-section heading="Theme Integration">
-            <s-paragraph>Add the "Buy X Get Y" block to your product page. It will automatically show the correct offer for the current product.</s-paragraph>
-            <s-button onClick={() => window.open(`https://${shop}/admin/themes/current/editor?addAppBlockId=a556b982b72af329f9965df4922e2761/bxgy`, '_blank')}>
-                Add to Store
-            </s-button>
-          </s-section>
-        </s-layout-section>
-      </s-layout>
-    </s-page>
+        <Layout.Section variant="oneThird">
+          <Card>
+            <BlockStack gap="300">
+              <Text variant="headingMd" as="h2">Theme Integration</Text>
+              <Text as="p">Add the "Buy X Get Y" block to your product page. It will automatically show the correct offer for the current product.</Text>
+              <Button onClick={() => window.open(`https://${shop}/admin/themes/current/editor?addAppBlockId=a556b982b72af329f9965df4922e2761/bxgy`, '_blank')}>
+                  Add to Store
+              </Button>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
 
@@ -208,98 +239,108 @@ function BundleEditor({ bundle, onSave, onCancel, selectProducts, isSaving }) {
   }, [setSaveAction]);
 
   return (
-    <s-page back-action={{ content: "Back", onClick: onCancel }}>
-      
-      <s-section heading="Customer Buys">
-        <s-stack direction="block" gap="base">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span>Buy</span>
-                <input 
-                    type="number" 
-                    value={localBundle.buyCount} 
-                    onChange={(e) => setLocalBundle({ ...localBundle, buyCount: parseInt(e.target.value) || 1 })}
-                    style={{ width: '60px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                />
-                <span>items from:</span>
-            </div>
-            <s-button onClick={() => selectProducts('buyProducts', localBundle, setLocalBundle)}>
-                {localBundle.buyProducts.length > 0 ? `Edit Products (${localBundle.buyProducts.length})` : "Select Products"}
-            </s-button>
-            {localBundle.buyProducts.length > 0 && (
-                <s-stack direction="inline" gap="tight">
-                    {localBundle.buyProducts.map(p => (
-                        <s-box key={p.id} padding="tight" borderWidth="base" borderRadius="base">
-                            <s-text font-size="small">{p.title}</s-text>
-                        </s-box>
-                    ))}
-                </s-stack>
-            )}
-        </s-stack>
-      </s-section>
+    <Page 
+      backAction={{ content: "Back", onClick: onCancel }}
+      title="Edit BXGY Bundle"
+    >
+      <Layout>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+                <Text variant="headingMd" as="h2">Customer Buys</Text>
+                <InlineStack gap="300" align="center">
+                    <Text>Buy</Text>
+                    <div style={{ width: '80px' }}>
+                      <TextField
+                        type="number"
+                        value={String(localBundle.buyCount)}
+                        onChange={(val) => setLocalBundle({ ...localBundle, buyCount: parseInt(val) || 1 })}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <Text>items from:</Text>
+                </InlineStack>
+                <Button onClick={() => selectProducts('buyProducts', localBundle, setLocalBundle)}>
+                    {localBundle.buyProducts.length > 0 ? `Edit Products (${localBundle.buyProducts.length})` : "Select Products"}
+                </Button>
+                {localBundle.buyProducts.length > 0 && (
+                    <InlineStack gap="200" wrap>
+                        {localBundle.buyProducts.map(p => (
+                            <Box key={p.id} padding="200" borderWidth="025" borderRadius="200" borderColor="border">
+                                <Text variant="bodySm">{p.title}</Text>
+                            </Box>
+                        ))}
+                    </InlineStack>
+                )}
+            </BlockStack>
+          </Card>
+        </Layout.Section>
 
-      <s-section heading="Customer Gets">
-        <s-stack direction="block" gap="base">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span>Get</span>
-                <input 
-                    type="number" 
-                    value={localBundle.getCount} 
-                    onChange={(e) => setLocalBundle({ ...localBundle, getCount: parseInt(e.target.value) || 1 })}
-                    style={{ width: '60px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                />
-                <span>items from:</span>
-            </div>
-            <s-button onClick={() => selectProducts('getProducts', localBundle, setLocalBundle)}>
-                {localBundle.getProducts.length > 0 ? `Edit Products (${localBundle.getProducts.length})` : "Select Products"}
-            </s-button>
-            {localBundle.getProducts.length > 0 && (
-                <s-stack direction="inline" gap="tight">
-                    {localBundle.getProducts.map(p => (
-                        <s-box key={p.id} padding="tight" borderWidth="base" borderRadius="base">
-                            <s-text font-size="small">{p.title}</s-text>
-                        </s-box>
-                    ))}
-                </s-stack>
-            )}
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+                <Text variant="headingMd" as="h2">Customer Gets</Text>
+                <InlineStack gap="300" align="center">
+                    <Text>Get</Text>
+                    <div style={{ width: '80px' }}>
+                      <TextField
+                        type="number"
+                        value={String(localBundle.getCount)}
+                        onChange={(val) => setLocalBundle({ ...localBundle, getCount: parseInt(val) || 1 })}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <Text>items from:</Text>
+                </InlineStack>
+                <Button onClick={() => selectProducts('getProducts', localBundle, setLocalBundle)}>
+                    {localBundle.getProducts.length > 0 ? `Edit Products (${localBundle.getProducts.length})` : "Select Products"}
+                </Button>
+                {localBundle.getProducts.length > 0 && (
+                    <InlineStack gap="200" wrap>
+                        {localBundle.getProducts.map(p => (
+                            <Box key={p.id} padding="200" borderWidth="025" borderRadius="200" borderColor="border">
+                                <Text variant="bodySm">{p.title}</Text>
+                            </Box>
+                        ))}
+                    </InlineStack>
+                )}
 
-            <div style={{ marginTop: '20px' }}>
-                <s-text font-weight="bold">At a Discount</s-text>
-                <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                        <input 
-                            type="radio" 
-                            name="discountType" 
-                            checked={localBundle.discountType === 'free'} 
+                <Box paddingBlockStart="400">
+                    <Text fontWeight="bold">At a Discount</Text>
+                    <BlockStack gap="200">
+                        <RadioButton
+                            label="Free"
+                            checked={localBundle.discountType === 'free'}
                             onChange={() => setLocalBundle({ ...localBundle, discountType: 'free', discountValue: 100 })}
                         />
-                        Free
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                        <input 
-                            type="radio" 
-                            name="discountType" 
-                            checked={localBundle.discountType === 'percentage'} 
+                        <RadioButton
+                            label="Percentage Off"
+                            checked={localBundle.discountType === 'percentage'}
                             onChange={() => setLocalBundle({ ...localBundle, discountType: 'percentage', discountValue: 15 })}
                         />
-                        Percentage Off
-                    </label>
-                </div>
-                
-                {localBundle.discountType === 'percentage' && (
-                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span>Discount value:</span>
-                        <input 
-                            type="number" 
-                            value={localBundle.discountValue} 
-                            onChange={(e) => setLocalBundle({ ...localBundle, discountValue: parseInt(e.target.value) || 0 })}
-                            style={{ width: '80px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                        />
-                        <span>%</span>
-                    </div>
-                )}
-            </div>
-        </s-stack>
-      </s-section>
-    </s-page>
+                    </BlockStack>
+                    
+                    {localBundle.discountType === 'percentage' && (
+                        <Box paddingBlockStart="300">
+                            <InlineStack gap="300" align="center">
+                                <Text>Discount value:</Text>
+                                <div style={{ width: '80px' }}>
+                                  <TextField
+                                    type="number"
+                                    value={String(localBundle.discountValue)}
+                                    onChange={(val) => setLocalBundle({ ...localBundle, discountValue: parseInt(val) || 0 })}
+                                    autoComplete="off"
+                                    suffix="%"
+                                  />
+                                </div>
+                            </InlineStack>
+                        </Box>
+                    )}
+                </Box>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
