@@ -4,7 +4,7 @@ import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { TitleBar, NavMenu } from "@shopify/app-bridge-react";
-import shopify, { authenticate } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 
 const enTranslations = {
   Polaris: {
@@ -24,8 +24,14 @@ const enTranslations = {
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
+  const apiKey = process.env.SHOPIFY_API_KEY;
+
+  if (!apiKey) {
+    throw new Response("Missing SHOPIFY_API_KEY", { status: 500 });
+  }
+
   return { 
-    apiKey: shopify.config.apiKey 
+    apiKey
   };
 };
 
