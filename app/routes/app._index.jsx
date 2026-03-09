@@ -213,7 +213,7 @@ export default function Index() {
     setDiscounts(discounts.filter((_, i) => i !== index));
   };
 
-  if (!isClient) return null;
+  // if (!isClient) return null;
 
   return (
     <Page>

@@ -203,7 +203,7 @@ export default function VolumeDiscount() {
     }
   };
 
-  if (!isClient) return null;
+  // if (!isClient) return null;
 
   return (
     <Page title="Volume Discount">

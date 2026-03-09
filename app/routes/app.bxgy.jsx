@@ -146,7 +146,7 @@ export default function BXGYConfig() {
     }
   };
 
-  if (!isClient) return null;
+  // if (!isClient) return null;
 
   if (editingIndex !== null) {
     return (

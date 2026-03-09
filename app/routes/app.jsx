@@ -3,8 +3,8 @@ import { Outlet, useLoaderData, useRouteError, useLocation, Link } from "react-r
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { TitleBar } from "@shopify/app-bridge-react";
-import { authenticate } from "../shopify.server";
+import { TitleBar, NavMenu } from "@shopify/app-bridge-react";
+import shopify, { authenticate } from "../shopify.server";
 
 const enTranslations = {
   Polaris: {
@@ -23,17 +23,14 @@ const enTranslations = {
 };
 
 export const loader = async ({ request }) => {
-  const { admin, session } = await authenticate.admin(request);
-  const url = new URL(request.url);
-
+  await authenticate.admin(request);
   return { 
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-    host: url.searchParams.get("host") || ""
+    apiKey: shopify.config.apiKey 
   };
 };
 
 export default function App() {
-  const { apiKey, host } = useLoaderData();
+  const { apiKey } = useLoaderData();
   const location = useLocation();
   const [saveAction, setSaveAction] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,7 +38,8 @@ export default function App() {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    console.log("App initialized. apiKey:", apiKey);
+  }, [apiKey]);
 
   const titles = {
     "/app": "Bundle Configuration",
@@ -58,10 +56,10 @@ export default function App() {
   const currentTitle = titles[normalizedPath] || "Bundle Builder";
 
   return (
-    <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
+    <AppProvider isEmbeddedApp apiKey={apiKey}>
       <PolarisProvider i18n={enTranslations} linkComponent={Link}>
         <TitleBar title={currentTitle}>
-          {isClient && saveAction && (
+          {saveAction && (
             <button 
               variant="primary" 
               onClick={saveAction}
@@ -71,18 +69,16 @@ export default function App() {
             </button>
           )}
         </TitleBar>
-        {isClient && (
-          <ui-nav-menu>
-            <Link to="/app" rel="home">Bundle Configuration</Link>
-            <Link to="/app/product-bundle">Product Bundle</Link>
-            <Link to="/app/volume-discount">Volume Discount</Link>
-            <Link to="/app/bxgy">Buy X Get Y</Link>
-            <Link to="/app/analytics">Analytics</Link>
-            <Link to="/app/privacy-policy">Privacy Policy</Link>
-            <Link to="/app/contact-us">Contact Us</Link>
-            <Link to="/app/faq">FAQ</Link>
-          </ui-nav-menu>
-        )}
+        <NavMenu>
+          <Link to="/app" rel="home">Bundle Configuration</Link>
+          <Link to="/app/product-bundle">Product Bundle</Link>
+          <Link to="/app/volume-discount">Volume Discount</Link>
+          <Link to="/app/bxgy">Buy X Get Y</Link>
+          <Link to="/app/analytics">Analytics</Link>
+          <Link to="/app/privacy-policy">Privacy Policy</Link>
+          <Link to="/app/contact-us">Contact Us</Link>
+          <Link to="/app/faq">FAQ</Link>
+        </NavMenu>
         <div style={{ padding: '20px' }}>
           <Outlet context={{ setSaveAction, setIsSaving }} />
         </div>

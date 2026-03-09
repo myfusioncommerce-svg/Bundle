@@ -28,5 +28,8 @@ api_version = "2024-07"
 scopes = "write_products,write_discounts,read_orders"
 
 [auth]
-redirect_urls = [ "https://bundle-am3e.onrender.com/api/auth" ]
+redirect_urls = [
+  "https://bundle-am3e.onrender.com/auth/callback",
+  "https://bundle-am3e.onrender.com/auth/patch"
+]
 
