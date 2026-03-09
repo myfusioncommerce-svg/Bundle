@@ -125,7 +125,7 @@ export default function App() {
               <Link to="/app/product-bundle">Product Bundle</Link>
               <Link to="/app/volume-discount">Volume Discount</Link>
               <Link to="/app/bxgy">Buy X Get Y</Link>
-              <Link to="/app/analytics">Analytics</Link>
+              {/* <Link to="/app/analytics">Analytics</Link> */}
               <Link to="/app/privacy-policy">Privacy Policy</Link>
               <Link to="/app/contact-us">Contact Us</Link>
               <Link to="/app/faq">FAQ</Link>
