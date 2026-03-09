@@ -29,18 +29,35 @@ export const loader = async ({ request }) => {
     const host = url.searchParams.get("host") || "";
     const apiKey = process.env.SHOPIFY_API_KEY || shopify.config.apiKey;
 
-    console.log("App loader success:", { shop: session.shop, host: host ? "present" : "missing" });
+    if (!apiKey) {
+      console.error("App loader error: SHOPIFY_API_KEY is missing from process.env and shopify.config");
+    }
+
+    console.log("App loader success:", { 
+      shop: session?.shop, 
+      hasHost: !!host,
+      hasApiKey: !!apiKey 
+    });
 
     return { 
-      apiKey,
+      apiKey: apiKey || "",
       host
     };
   } catch (error) {
+    // If it's a redirect response (302), just re-throw it so the router handles it
     if (error instanceof Response && error.status >= 300 && error.status < 400) {
       throw error;
     }
-    console.error("App loader error:", error);
-    throw new Response(error?.message || "Internal Server Error", { status: 500 });
+    
+    console.error("App loader fatal error:", error);
+    // Return a 500 with more info if possible
+    throw new Response(
+      JSON.stringify({ 
+        message: error?.message || "Internal Server Error",
+        stack: process.env.NODE_ENV === "development" ? error?.stack : undefined
+      }), 
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 };
 
@@ -53,7 +70,8 @@ export default function App() {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    console.log("App Component Hydrated. API Key present:", !!apiKey, "Host present:", !!host);
+  }, [apiKey, host]);
 
   const titles = {
     "/app": "Bundle Configuration",
@@ -71,7 +89,7 @@ export default function App() {
 
   return (
     <PolarisProvider i18n={enTranslations} linkComponent={Link}>
-      <AppProvider isEmbeddedApp apiKey={apiKey}>
+      <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
         {isClient && window.shopify && (
           <>
             <TitleBar title={currentTitle}>

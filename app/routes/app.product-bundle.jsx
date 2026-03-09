@@ -137,7 +137,11 @@ export default function ProductBundle() {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    console.log("ProductBundle Hydrated. shopify object available:", !!shopify);
+    if (shopify) {
+      console.log("shopify.config:", shopify.config);
+    }
+  }, [shopify]);
 
   useEffect(() => {
     if (isClient) {
