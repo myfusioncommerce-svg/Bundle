@@ -4,7 +4,7 @@ import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { TitleBar, NavMenu } from "@shopify/app-bridge-react";
-import shopify, { authenticate } from "../shopify.server";
+import { authenticate, addDocumentResponseHeaders } from "../shopify.server";
 
 const enTranslations = {
   Polaris: {
@@ -27,34 +27,47 @@ export const loader = async ({ request }) => {
     const { session } = await authenticate.admin(request);
     const url = new URL(request.url);
     const host = url.searchParams.get("host") || "";
-    const apiKey = process.env.SHOPIFY_API_KEY || shopify.config.apiKey;
+    const apiKey = process.env.SHOPIFY_API_KEY || "";
 
     if (!apiKey) {
-      console.error("App loader error: SHOPIFY_API_KEY is missing from process.env and shopify.config");
+      console.warn("App loader warning: SHOPIFY_API_KEY is missing from process.env");
     }
 
     console.log("App loader success:", { 
       shop: session?.shop, 
-      hasHost: !!host,
-      hasApiKey: !!apiKey 
+      host: host ? "present" : "missing",
+      apiKey: apiKey ? "present" : "missing"
     });
 
-    return { 
-      apiKey: apiKey || "",
+    const responseData = { 
+      apiKey,
       host
     };
+
+    const response = new Response(JSON.stringify(responseData), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+
+    await addDocumentResponseHeaders(request, response.headers);
+
+    return response;
   } catch (error) {
+    console.error("App loader error details:", {
+      message: error?.message,
+      stack: error?.stack,
+      url: request.url
+    });
+    
     // If it's a redirect response (302), just re-throw it so the router handles it
     if (error instanceof Response && error.status >= 300 && error.status < 400) {
       throw error;
     }
     
-    console.error("App loader fatal error:", error);
-    // Return a 500 with more info if possible
     throw new Response(
       JSON.stringify({ 
         message: error?.message || "Internal Server Error",
-        stack: process.env.NODE_ENV === "development" ? error?.stack : undefined
+        details: "Check server logs for more information."
       }), 
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
@@ -73,6 +86,10 @@ export default function App() {
     console.log("App Component Hydrated. API Key present:", !!apiKey, "Host present:", !!host);
   }, [apiKey, host]);
 
+  if (isClient && !window.shopify) {
+    console.warn("window.shopify not found - possibly not embedded or App Bridge script failed to load");
+  }
+
   const titles = {
     "/app": "Bundle Configuration",
     "/app/product-bundle": "Product Bundle",
@@ -90,7 +107,7 @@ export default function App() {
   return (
     <PolarisProvider i18n={enTranslations} linkComponent={Link}>
       <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
-        {isClient && window.shopify && (
+        {isClient && window.shopify ? (
           <>
             <TitleBar title={currentTitle}>
               {saveAction && (
@@ -113,11 +130,15 @@ export default function App() {
               <Link to="/app/contact-us">Contact Us</Link>
               <Link to="/app/faq">FAQ</Link>
             </NavMenu>
+            <div style={{ padding: '20px' }}>
+              <Outlet context={{ setSaveAction, setIsSaving }} />
+            </div>
           </>
+        ) : (
+          <div style={{ padding: '40px', textAlign: 'center' }}>
+            <p>Initializing App Bridge...</p>
+          </div>
         )}
-        <div style={{ padding: '20px' }}>
-          <Outlet context={{ setSaveAction, setIsSaving }} />
-        </div>
       </AppProvider>
     </PolarisProvider>
   );

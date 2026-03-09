@@ -155,7 +155,7 @@ export default function ProductBundle() {
   }, [navigation.state, setIsSaving]);
 
   useEffect(() => {
-    if (actionData) {
+    if (actionData && shopify) {
       if (actionData.success) {
         shopify.toast.show("Configuration saved!");
         setSaveStatus({ type: 'success', message: 'Configuration saved!' });
@@ -176,6 +176,10 @@ export default function ProductBundle() {
 
   const handleSelectProducts = async () => {
     try {
+      if (!shopify) {
+        console.error("Shopify object is not available for resource picker");
+        return;
+      }
       const selected = await shopify.resourcePicker({
         type: "product",
         multiple: true,
