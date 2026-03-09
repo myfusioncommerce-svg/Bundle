@@ -23,13 +23,25 @@ const enTranslations = {
 };
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
-  const url = new URL(request.url);
+  try {
+    const { session } = await authenticate.admin(request);
+    const url = new URL(request.url);
+    const host = url.searchParams.get("host") || "";
+    const apiKey = process.env.SHOPIFY_API_KEY || shopify.config.apiKey;
 
-  return { 
-    apiKey: shopify.config.apiKey,
-    host: url.searchParams.get("host") || ""
-  };
+    console.log("App loader success:", { shop: session.shop, host: host ? "present" : "missing" });
+
+    return { 
+      apiKey,
+      host
+    };
+  } catch (error) {
+    if (error instanceof Response && error.status >= 300 && error.status < 400) {
+      throw error;
+    }
+    console.error("App loader error:", error);
+    throw new Response(error?.message || "Internal Server Error", { status: 500 });
+  }
 };
 
 export default function App() {
@@ -59,38 +71,36 @@ export default function App() {
 
   return (
     <PolarisProvider i18n={enTranslations} linkComponent={Link}>
-      {isClient && window.shopify ? (
-        <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
-          <TitleBar title={currentTitle}>
-            {saveAction && (
-              <button 
-                variant="primary" 
-                onClick={saveAction}
-                disabled={isSaving}
-              >
-                Save Configuration
-              </button>
-            )}
-          </TitleBar>
-          <NavMenu>
-            <Link to="/app" rel="home">Bundle Configuration</Link>
-            <Link to="/app/product-bundle">Product Bundle</Link>
-            <Link to="/app/volume-discount">Volume Discount</Link>
-            <Link to="/app/bxgy">Buy X Get Y</Link>
-            <Link to="/app/analytics">Analytics</Link>
-            <Link to="/app/privacy-policy">Privacy Policy</Link>
-            <Link to="/app/contact-us">Contact Us</Link>
-            <Link to="/app/faq">FAQ</Link>
-          </NavMenu>
-          <div style={{ padding: '20px' }}>
-            <Outlet context={{ setSaveAction, setIsSaving }} />
-          </div>
-        </AppProvider>
-      ) : (
+      <AppProvider isEmbeddedApp apiKey={apiKey}>
+        {isClient && window.shopify && (
+          <>
+            <TitleBar title={currentTitle}>
+              {saveAction && (
+                <button 
+                  variant="primary" 
+                  onClick={saveAction}
+                  disabled={isSaving}
+                >
+                  Save Configuration
+                </button>
+              )}
+            </TitleBar>
+            <NavMenu>
+              <Link to="/app" rel="home">Bundle Configuration</Link>
+              <Link to="/app/product-bundle">Product Bundle</Link>
+              <Link to="/app/volume-discount">Volume Discount</Link>
+              <Link to="/app/bxgy">Buy X Get Y</Link>
+              <Link to="/app/analytics">Analytics</Link>
+              <Link to="/app/privacy-policy">Privacy Policy</Link>
+              <Link to="/app/contact-us">Contact Us</Link>
+              <Link to="/app/faq">FAQ</Link>
+            </NavMenu>
+          </>
+        )}
         <div style={{ padding: '20px' }}>
           <Outlet context={{ setSaveAction, setIsSaving }} />
         </div>
-      )}
+      </AppProvider>
     </PolarisProvider>
   );
 }
