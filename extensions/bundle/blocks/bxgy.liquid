@@ -259,7 +259,7 @@
                   { id: getVariantId, quantity: {{ config.getCount }} }
               ];
 
-              const code = 'fubxgy-' + '{{ config.discountType }}' + '-' + '{{ config.discountValue }}';
+              const code = 'fubxgy-' + '{% if config.id %}{{ config.id }}{% else %}{{ config.discountType }}-{{ config.discountValue }}{% endif %}';
 
               if (isCheckout) {
                 // For checkout, we use the /cart/ID:QTY,ID:QTY format

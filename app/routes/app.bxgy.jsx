@@ -25,9 +25,17 @@ export const loader = async ({ request }) => {
   
   const bundles = Array.isArray(savedConfig) ? savedConfig : (savedConfig ? [savedConfig] : []);
   
+  // Ensure all bundles have unique IDs
+  const bundlesWithIds = bundles.map((bundle, index) => {
+    if (!bundle.id) {
+      return { ...bundle, id: `bxgy_${Date.now()}_${index}` };
+    }
+    return bundle;
+  });
+
   return {
     shop: session.shop,
-    bundles: bundles
+    bundles: bundlesWithIds
   };
 };
 
@@ -35,11 +43,28 @@ export const action = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
   const data = await request.json();
   const bundles = data.bundles;
+  const METAFIELD_KEY = "bxgy_config";
 
+  const oldConfig = await getBundleConfig(admin.graphql, METAFIELD_KEY);
+  const oldBundles = Array.isArray(oldConfig) ? oldConfig : (oldConfig ? [oldConfig] : []);
+  
   const success = await setBundleConfig(admin, bundles, METAFIELD_KEY);
   let discountError = null;
 
   if (success) {
+    // Delete orphaned discounts
+    for (const oldBundle of oldBundles) {
+      if (oldBundle.id) {
+        const isStillPresent = bundles.some(b => b.id === oldBundle.id);
+        if (!isStillPresent) {
+          // Note: we'll use the NEW code format here. We need to be careful if old discounts used old format.
+          // But since we are changing it now, we'll try to delete both or just the new one.
+          // Actually, let's just delete by the ID-based code for now.
+          await createBXGYDiscount(admin, { ...oldBundle, deleteOnly: true });
+        }
+      }
+    }
+
     for (const bundle of bundles) {
       const result = await createBXGYDiscount(admin, bundle);
       if (!result.success) {

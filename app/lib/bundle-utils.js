@@ -298,8 +298,16 @@ export async function deleteBundleDiscount(admin, code) {
 
 export async function createBXGYDiscount(admin, config, prefix = "fubxgy") {
   console.log("UTILS: createBXGYDiscount config:", JSON.stringify(config));
-  const { buyCount, buyProducts, getCount, getProducts, discountType, discountValue } = config;
-  const code = `${prefix}-${discountType}-${discountValue}`;
+  const { id, buyCount, buyProducts, getCount, getProducts, discountType, discountValue, deleteOnly } = config;
+  
+  // Use bundle ID for unique discount codes if available, else fallback
+  const code = id ? `${prefix}-${id}` : `${prefix}-${discountType}-${discountValue}`;
+  
+  if (deleteOnly) {
+    console.log(`UTILS: Delete-only requested for BXGY code: ${code}`);
+    return await deleteBundleDiscount(admin, code);
+  }
+
   const title = `Buy ${buyCount} get ${getCount} ${discountType === 'free' ? 'FREE' : discountValue + '% off'}`;
 
   try {
