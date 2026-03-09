@@ -22,38 +22,44 @@ const METAFIELD_KEY = "config";
 
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
-  const savedConfig = await getBundleConfig(admin.graphql, METAFIELD_KEY);
-  
-  if (savedConfig && savedConfig.products && savedConfig.products.length > 0) {
-    const productIds = savedConfig.products.map(p => p.id);
-    const response = await admin.graphql(`#graphql
-      query getProducts($ids: [ID!]!) {
-        nodes(ids: $ids) {
-          ... on Product {
-            id
-            title
-            handle
-            featuredImage {
-              url
+  let savedConfig = null;
+
+  try {
+    savedConfig = await getBundleConfig(admin.graphql, METAFIELD_KEY);
+
+    if (savedConfig && savedConfig.products && savedConfig.products.length > 0) {
+      const productIds = savedConfig.products.map((p) => p.id);
+      const response = await admin.graphql(`#graphql
+        query getProducts($ids: [ID!]!) {
+          nodes(ids: $ids) {
+            ... on Product {
+              id
+              title
+              handle
+              featuredImage {
+                url
+              }
             }
           }
         }
-      }
-    `, {
-      variables: { ids: productIds }
-    });
-    
-    const responseJson = await response.json();
-    const nodes = responseJson.data?.nodes || [];
-    
-    savedConfig.products = savedConfig.products.map(p => {
-      const node = nodes.find(n => n && n.id === p.id);
-      return {
-        ...p,
-        title: node?.title || p.title,
-        image: node?.featuredImage?.url || p.image
-      };
-    });
+      `, {
+        variables: { ids: productIds }
+      });
+
+      const responseJson = await response.json();
+      const nodes = responseJson.data?.nodes || [];
+
+      savedConfig.products = savedConfig.products.map((p) => {
+        const node = nodes.find((n) => n && n.id === p.id);
+        return {
+          ...p,
+          title: node?.title || p.title,
+          image: node?.featuredImage?.url || p.image
+        };
+      });
+    }
+  } catch (error) {
+    console.error("Failed loading bundle configuration:", error);
   }
 
   return {
