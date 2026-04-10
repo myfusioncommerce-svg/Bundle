@@ -19,5 +19,5 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY . .
 
-EXPOSE 3000
+EXPOSE 10000
 CMD ["npm", "run", "docker-start"]
