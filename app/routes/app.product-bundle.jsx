@@ -205,7 +205,7 @@ export default function ProductBundle() {
 
   const updateDiscount = (index, field, value) => {
     const newDiscounts = [...discounts];
-    newDiscounts[index][field] = parseInt(value) || 0;
+    newDiscounts[index][field] = value;
     setDiscounts(newDiscounts);
   };
 
@@ -266,20 +266,24 @@ export default function ProductBundle() {
                           <Text>Tier {index + 1}: If</Text>
                           <div style={{ width: '70px' }}>
                             <TextField
-                              type="number"
+                              label=""
+                              labelHidden
                               value={String(discount.count)}
                               onChange={(val) => updateDiscount(index, 'count', val)}
                               autoComplete="off"
+                              inputMode="numeric"
                             />
                           </div>
                           <Text>products, then</Text>
                           <div style={{ width: '70px' }}>
                             <TextField
-                              type="number"
+                              label=""
+                              labelHidden
                               value={String(discount.percentage)}
                               onChange={(val) => updateDiscount(index, 'percentage', val)}
                               autoComplete="off"
                               suffix="%"
+                              inputMode="numeric"
                             />
                           </div>
                           <Text>off</Text>

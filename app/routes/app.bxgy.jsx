@@ -277,10 +277,12 @@ function BundleEditor({ bundle, onSave, onCancel, selectProducts, isSaving }) {
                     <Text>Buy</Text>
                     <div style={{ width: '80px' }}>
                       <TextField
-                        type="number"
+                        label=""
+                        labelHidden
                         value={String(localBundle.buyCount)}
-                        onChange={(val) => setLocalBundle({ ...localBundle, buyCount: parseInt(val) || 1 })}
+                        onChange={(val) => setLocalBundle({ ...localBundle, buyCount: val })}
                         autoComplete="off"
+                        inputMode="numeric"
                       />
                     </div>
                     <Text>items from:</Text>
@@ -309,10 +311,12 @@ function BundleEditor({ bundle, onSave, onCancel, selectProducts, isSaving }) {
                     <Text>Get</Text>
                     <div style={{ width: '80px' }}>
                       <TextField
-                        type="number"
+                        label=""
+                        labelHidden
                         value={String(localBundle.getCount)}
-                        onChange={(val) => setLocalBundle({ ...localBundle, getCount: parseInt(val) || 1 })}
+                        onChange={(val) => setLocalBundle({ ...localBundle, getCount: val })}
                         autoComplete="off"
+                        inputMode="numeric"
                       />
                     </div>
                     <Text>items from:</Text>
@@ -351,11 +355,13 @@ function BundleEditor({ bundle, onSave, onCancel, selectProducts, isSaving }) {
                                 <Text>Discount value:</Text>
                                 <div style={{ width: '80px' }}>
                                   <TextField
-                                    type="number"
+                                    label=""
+                                    labelHidden
                                     value={String(localBundle.discountValue)}
-                                    onChange={(val) => setLocalBundle({ ...localBundle, discountValue: parseInt(val) || 0 })}
+                                    onChange={(val) => setLocalBundle({ ...localBundle, discountValue: val })}
                                     autoComplete="off"
                                     suffix="%"
+                                    inputMode="numeric"
                                   />
                                 </div>
                             </InlineStack>

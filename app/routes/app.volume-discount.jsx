@@ -191,7 +191,7 @@ export default function VolumeDiscount() {
 
   const updateDiscount = (index, field, value) => {
     const newDiscounts = [...discounts];
-    newDiscounts[index][field] = parseInt(value) || 0;
+    newDiscounts[index][field] = value;
     setDiscounts(newDiscounts);
   };
 
@@ -255,20 +255,24 @@ export default function VolumeDiscount() {
                           <Text>Tier {index + 1}: Buy</Text>
                           <div style={{ width: '70px' }}>
                             <TextField
-                              type="number"
+                              label=""
+                              labelHidden
                               value={String(discount.count)}
                               onChange={(val) => updateDiscount(index, 'count', val)}
                               autoComplete="off"
+                              inputMode="numeric"
                             />
                           </div>
                           <Text>or more, get</Text>
                           <div style={{ width: '70px' }}>
                             <TextField
-                              type="number"
+                              label=""
+                              labelHidden
                               value={String(discount.percentage)}
                               onChange={(val) => updateDiscount(index, 'percentage', val)}
                               autoComplete="off"
                               suffix="%"
+                              inputMode="numeric"
                             />
                           </div>
                           <Text>off</Text>
